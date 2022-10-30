@@ -119,7 +119,7 @@ func (o *Options) String() string {
 }
 
 // Build constructs a global zap logger from the Config and Options.
-// Build 根据配置和选项构建一个全局的zap looger
+// Build 根据配置和选项构建一个全局的zap looger（这个Build功能没有被用到）
 func (o *Options) Build() error {
 	// 验证options的Level字段，如果不合法设置成Info级别
 	var zapLevel zapcore.Level

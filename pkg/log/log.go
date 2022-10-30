@@ -91,7 +91,7 @@ type Logger interface {
 	// suffixes to the logger's name.  It's strongly recommended
 	// that name segments contain only letters, digits, and hyphens
 	// (see the package documentation for more information).
-	// 添加一个新的元素到logger的名字, 连续的调用WithName会持续的添加后缀到logger的名字
+	// 添加一个新的元素到logger的名字, 连续的调用WithName会持续的添加后缀到logger的名字,e.g. name1.name2.name3.xxx ...
 	WithName(name string) Logger
 
 	// WithContext returns a copy of context in which the log value is set.
@@ -102,8 +102,6 @@ type Logger interface {
 	// 把缓存中的内容写入磁盘
 	Flush()
 }
-
-var _ Logger = &zapLogger{}
 
 // noopInfoLogger is a logr.InfoLogger that's always disabled, and does nothing.
 // noopInfoLogger 什么也不做
@@ -149,14 +147,6 @@ func (l *infoLogger) Infow(msg string, keysAndValues ...interface{}) {
 	if checkedEntry := l.log.Check(l.level, msg); checkedEntry != nil {
 		checkedEntry.Write(handleFields(l.log, keysAndValues)...)
 	}
-}
-
-// zapLogger is a logr.Logger that uses Zap to log.
-type zapLogger struct {
-	// NB: this looks very similar to zap.SugaredLogger, but
-	// deals with our desire to have multiple verbosity levels.
-	zapLogger *zap.Logger
-	infoLogger
 }
 
 // handleFields converts a bunch of arbitrary key-value pairs into Zap fields.  It takes
@@ -212,12 +202,24 @@ func handleFields(l *zap.Logger, args []interface{}, additional ...zap.Field) []
 	return append(fields, additional...)
 }
 
+// zapLogger is a logr.Logger that uses Zap to log.
+// zapLogger 使用Zap.Logger记录日志
+type zapLogger struct {
+	// NB: this looks very similar to zap.SugaredLogger, but
+	// deals with our desire to have multiple verbosity levels.
+	zapLogger *zap.Logger
+	infoLogger
+}
+
+var _ Logger = &zapLogger{}
+
 var (
-	std = New(NewOptions())
+	std = New(NewOptions()) // 创建一个标准logger
 	mu  sync.Mutex
 )
 
 // Init initializes logger with specified options.
+// Init 使用指定的options初始化一个logger
 func Init(opts *Options) {
 	mu.Lock()
 	defer mu.Unlock()
@@ -225,11 +227,14 @@ func Init(opts *Options) {
 }
 
 // New create logger by opts which can custmoized by command arguments.
+// New 通过一个可以在命令行自定义的options创建一个Logger
 func New(opts *Options) *zapLogger {
+	// 不指定options时，使用默认Options
 	if opts == nil {
 		opts = NewOptions()
 	}
 
+	// 校验并设置Level、LevelEncoder
 	var zapLevel zapcore.Level
 	if err := zapLevel.UnmarshalText([]byte(opts.Level)); err != nil {
 		zapLevel = zapcore.InfoLevel
@@ -239,7 +244,7 @@ func New(opts *Options) *zapLogger {
 	if opts.Format == consoleFormat && opts.EnableColor {
 		encodeLevel = zapcore.CapitalColorLevelEncoder
 	}
-
+	// 设置日志编码配置
 	encoderConfig := zapcore.EncoderConfig{
 		MessageKey:     "message",
 		LevelKey:       "level",
@@ -253,7 +258,7 @@ func New(opts *Options) *zapLogger {
 		EncodeDuration: milliSecondsDurationEncoder,
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
-
+	// 设置logger的配置
 	loggerConfig := &zap.Config{
 		Level:             zap.NewAtomicLevelAt(zapLevel),
 		Development:       opts.Development,
@@ -281,13 +286,14 @@ func New(opts *Options) *zapLogger {
 			level: zap.InfoLevel,
 		},
 	}
-	klog.InitLogger(l)
-	zap.RedirectStdLog(l)
+	klog.InitLogger(l)    // klog的日志使用zap输出
+	zap.RedirectStdLog(l) // 标准库的日志使用zap输出
 
 	return logger
 }
 
 // SugaredLogger returns global sugared logger.
+// SugaredLogger 返回全局的sugared日志
 func SugaredLogger() *zap.SugaredLogger {
 	return std.zapLogger.Sugar()
 }
@@ -319,6 +325,7 @@ func StdInfoLogger() *log.Logger {
 }
 
 // V return a leveled InfoLogger.
+// V 返回一个指定level级别以上的InfoLogger实例
 func V(level Level) InfoLogger { return std.V(level) }
 
 func (l *zapLogger) V(level Level) InfoLogger {
@@ -338,7 +345,8 @@ func (l *zapLogger) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-// WithValues creates a child logger and adds adds Zap fields to it.
+// WithValues creates a child logger and adds Zap fields to it.
+// WithValues 创建一个子logger并且把指定的zap.Field字段加入其中
 func WithValues(keysAndValues ...interface{}) Logger { return std.WithValues(keysAndValues...) }
 
 func (l *zapLogger) WithValues(keysAndValues ...interface{}) Logger {
@@ -349,6 +357,7 @@ func (l *zapLogger) WithValues(keysAndValues ...interface{}) Logger {
 
 // WithName adds a new path segment to the logger's name. Segments are joined by
 // periods. By default, Loggers are unnamed.
+// 添加一个新的路径段到日志名称，段落是由点号连接，默认情况下Logger是未命名的
 func WithName(s string) Logger { return std.WithName(s) }
 
 func (l *zapLogger) WithName(name string) Logger {
@@ -366,6 +375,7 @@ func (l *zapLogger) Flush() {
 }
 
 // NewLogger creates a new logr.Logger using the given Zap Logger to log.
+// 使用指定的zap.Logger创建一个新的Logger
 func NewLogger(l *zap.Logger) Logger {
 	return &zapLogger{
 		zapLogger: l,
@@ -383,6 +393,7 @@ func ZapLogger() *zap.Logger {
 
 // CheckIntLevel used for other log wrapper such as klog which return if logging a
 // message at the specified level is enabled.
+// 由其它
 func CheckIntLevel(level int32) bool {
 	var lvl zapcore.Level
 	if level < 5 {
