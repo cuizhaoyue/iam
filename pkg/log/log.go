@@ -32,6 +32,7 @@ import (
 )
 
 // InfoLogger represents the ability to log non-error messages, at a particular verbosity.
+// InfoLogger代表以一种特定的详细程度记录非错误信息的能力
 type InfoLogger interface {
 	// Info logs a non-error message with the given key/value pairs as context.
 	//
@@ -46,10 +47,12 @@ type InfoLogger interface {
 	// Enabled tests whether this InfoLogger is enabled.  For example,
 	// commandline flags might be used to set the logging verbosity and disable
 	// some info logs.
+	// 测试是否InforLogger被开启了
 	Enabled() bool
 }
 
 // Logger represents the ability to log messages, both errors and not.
+// Logger代表记录错误或非错误日志信息的能力
 type Logger interface {
 	// All Loggers implement InfoLogger.  Calling InfoLogger methods directly on
 	// a Logger value is equivalent to calling them on a V(0) InfoLogger.  For
@@ -74,11 +77,13 @@ type Logger interface {
 	// V returns an InfoLogger value for a specific verbosity level.  A higher
 	// verbosity level means a log message is less important.  It's illegal to
 	// pass a log level less than zero.
+	// V返回一个指定指印日志级别的InfoLogger，level越高表示日志信息不太重要
 	V(level Level) InfoLogger
 	Write(p []byte) (n int, err error)
 
 	// WithValues adds some key-value pairs of context to a logger.
 	// See Info for documentation on how key/value pairs work.
+	// 添加一些kv键值对的context到一个logger
 	WithValues(keysAndValues ...interface{}) Logger
 
 	// WithName adds a new element to the logger's name.
@@ -86,6 +91,7 @@ type Logger interface {
 	// suffixes to the logger's name.  It's strongly recommended
 	// that name segments contain only letters, digits, and hyphens
 	// (see the package documentation for more information).
+	// 添加一个新的元素到logger的名字, 连续的调用WithName会持续的添加后缀到logger的名字
 	WithName(name string) Logger
 
 	// WithContext returns a copy of context in which the log value is set.
@@ -93,12 +99,14 @@ type Logger interface {
 
 	// Flush calls the underlying Core's Sync method, flushing any buffered
 	// log entries. Applications should take care to call Sync before exiting.
+	// 把缓存中的内容写入磁盘
 	Flush()
 }
 
 var _ Logger = &zapLogger{}
 
 // noopInfoLogger is a logr.InfoLogger that's always disabled, and does nothing.
+// noopInfoLogger 什么也不做
 type noopInfoLogger struct{}
 
 func (l *noopInfoLogger) Enabled() bool                    { return false }
@@ -116,13 +124,16 @@ var disabledInfoLogger = &noopInfoLogger{}
 // infoLogger is a logr.InfoLogger that uses Zap to log at a particular
 // level.  The level has already been converted to a Zap level, which
 // is to say that `logrLevel = -1*zapLevel`.
+// infoLogger使用zap记录日志
 type infoLogger struct {
 	level zapcore.Level
 	log   *zap.Logger
 }
 
-func (l *infoLogger) Enabled() bool { return true }
+func (l *infoLogger) Enabled() bool { return true } // 启用Logger
 func (l *infoLogger) Info(msg string, fields ...Field) {
+	// Check检测是否允许在l.level下记录msg, 如果允许则使用返回的CheckEntry对象的Write方法把日志entry写入保存的Core中。
+	// Core中设置了对应的Encoder、WriteSyncer、LevelEnabler
 	if checkedEntry := l.log.Check(l.level, msg); checkedEntry != nil {
 		checkedEntry.Write(fields...)
 	}
@@ -151,9 +162,10 @@ type zapLogger struct {
 // handleFields converts a bunch of arbitrary key-value pairs into Zap fields.  It takes
 // additional pre-converted Zap fields, for use with automatically attached fields, like
 // `error`.
+// handleFields 把任意的key-value对转换成Zap.Field对象，它也接收额外的zap.Field字段，以便于和附加的zap.Field一起使用，例如“error”。
 func handleFields(l *zap.Logger, args []interface{}, additional ...zap.Field) []zap.Field {
 	// a slightly modified version of zap.SugaredLogger.sweetenFields
-	if len(args) == 0 {
+	if len(args) == 0 { // 如果没有需要转换的字段则直接返回
 		// fast-return if we have no suggared fields.
 		return additional
 	}
@@ -165,14 +177,14 @@ func handleFields(l *zap.Logger, args []interface{}, additional ...zap.Field) []
 	for i := 0; i < len(args); {
 		// check just in case for strongly-typed Zap fields, which is illegal (since
 		// it breaks implementation agnosticism), so we can give a better error message.
-		if _, ok := args[i].(zap.Field); ok {
+		if _, ok := args[i].(zap.Field); ok { // 传入zap.Field类型是非法的，打印错误日志并退出。
 			l.DPanic("strongly-typed Zap Field passed to logr", zap.Any("zap field", args[i]))
 
 			break
 		}
 
 		// make sure this isn't a mismatched key
-		if i == len(args)-1 {
+		if i == len(args)-1 { // 必须成对出现，如果总数为奇数则退出
 			l.DPanic("odd number of arguments passed as key-value pairs for logging", zap.Any("ignored key", args[i]))
 
 			break
@@ -180,8 +192,9 @@ func handleFields(l *zap.Logger, args []interface{}, additional ...zap.Field) []
 
 		// process a key-value pair,
 		// ensuring that the key is a string
-		key, val := args[i], args[i+1]
-		keyStr, isString := key.(string)
+		// 开始处理kv键值对，确保key是一个字符串
+		key, val := args[i], args[i+1]   // key和value是连续成对出现的
+		keyStr, isString := key.(string) // 确保key是一个字符串类型
 		if !isString {
 			// if the key isn't a string, DPanic and stop logging
 			l.DPanic(
@@ -191,11 +204,11 @@ func handleFields(l *zap.Logger, args []interface{}, additional ...zap.Field) []
 
 			break
 		}
-
+		// 使用zap.Any把kv键值对转换成zap.Field类型
 		fields = append(fields, zap.Any(keyStr, val))
 		i += 2
 	}
-
+	// 把额外的zap.Field添加到末尾一起返回
 	return append(fields, additional...)
 }
 

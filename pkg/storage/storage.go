@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package storage defines redis storage.
+// storage包定义了redis存储
 package storage
 
 import (
