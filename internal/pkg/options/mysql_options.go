@@ -14,6 +14,7 @@ import (
 )
 
 // MySQLOptions defines options for mysql database.
+// MySQLOptions 定义mysql数据库的配置选项
 type MySQLOptions struct {
 	Host                  string        `json:"host,omitempty"                     mapstructure:"host"`
 	Username              string        `json:"username,omitempty"                 mapstructure:"username"`
@@ -26,6 +27,7 @@ type MySQLOptions struct {
 }
 
 // NewMySQLOptions create a `zero` value instance.
+// NewMySQLOptions 创建一个零值实例。
 func NewMySQLOptions() *MySQLOptions {
 	return &MySQLOptions{
 		Host:                  "127.0.0.1:3306",
@@ -74,6 +76,7 @@ func (o *MySQLOptions) AddFlags(fs *pflag.FlagSet) {
 }
 
 // NewClient create mysql store with the given config.
+// NewClient 通过选项配置创建mysql存储
 func (o *MySQLOptions) NewClient() (*gorm.DB, error) {
 	opts := &db.Options{
 		Host:                  o.Host,

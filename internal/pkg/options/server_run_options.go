@@ -11,6 +11,7 @@ import (
 )
 
 // ServerRunOptions contains the options while running a generic api server.
+// ServerRunOptions 包含运行一个通用api服务时的选项
 type ServerRunOptions struct {
 	Mode        string   `json:"mode"        mapstructure:"mode"`
 	Healthz     bool     `json:"healthz"     mapstructure:"healthz"`
@@ -18,8 +19,9 @@ type ServerRunOptions struct {
 }
 
 // NewServerRunOptions creates a new ServerRunOptions object with default parameters.
+// 创建一个带有默认参数的ServerRunOptions对象（服务运行时的选项）
 func NewServerRunOptions() *ServerRunOptions {
-	defaults := server.NewConfig()
+	defaults := server.NewConfig() // 默认配置对象
 
 	return &ServerRunOptions{
 		Mode:        defaults.Mode,
@@ -45,6 +47,7 @@ func (s *ServerRunOptions) Validate() []error {
 }
 
 // AddFlags adds flags for a specific APIServer to the specified FlagSet.
+// AddFlags 添加APIServer的flag到指定的FlagSet中(由Options接管了命令行选项)
 func (s *ServerRunOptions) AddFlags(fs *pflag.FlagSet) {
 	// Note: the weird ""+ in below lines seems to be the only way to get gofmt to
 	// arrange these text blocks sensibly. Grrr.

@@ -29,17 +29,18 @@ type Options struct {
 }
 
 // NewOptions creates a new Options object with default parameters.
-func NewOptions() *Options {
+// NewOptions 创建一个新的带有默认选项的Options对象
+func NewOptions() *Options { // Options用来构建命令行参数
 	o := Options{
-		GenericServerRunOptions: genericoptions.NewServerRunOptions(),
-		GRPCOptions:             genericoptions.NewGRPCOptions(),
-		InsecureServing:         genericoptions.NewInsecureServingOptions(),
-		SecureServing:           genericoptions.NewSecureServingOptions(),
-		MySQLOptions:            genericoptions.NewMySQLOptions(),
-		RedisOptions:            genericoptions.NewRedisOptions(),
-		JwtOptions:              genericoptions.NewJwtOptions(),
-		Log:                     log.NewOptions(),
-		FeatureOptions:          genericoptions.NewFeatureOptions(),
+		GenericServerRunOptions: genericoptions.NewServerRunOptions(),       // 通用服务运行的配置选项
+		GRPCOptions:             genericoptions.NewGRPCOptions(),            // grpc服务的配置选项选项
+		InsecureServing:         genericoptions.NewInsecureServingOptions(), // http服务的配置选项
+		SecureServing:           genericoptions.NewSecureServingOptions(),   // HTTPS服务的配置选项
+		MySQLOptions:            genericoptions.NewMySQLOptions(),           // 连接mysql实例的配置选项
+		RedisOptions:            genericoptions.NewRedisOptions(),           // 连接redis实例的配置选项
+		JwtOptions:              genericoptions.NewJwtOptions(),             // jwt相关的选项
+		Log:                     log.NewOptions(),                           // 创建Logger的配置项
+		FeatureOptions:          genericoptions.NewFeatureOptions(),         // server功能的配置
 	}
 
 	return &o
@@ -65,6 +66,7 @@ func (o *Options) Flags() (fss cliflag.NamedFlagSets) {
 	return fss
 }
 
+// 配置序列化
 func (o *Options) String() string {
 	data, _ := json.Marshal(o)
 

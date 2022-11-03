@@ -9,6 +9,7 @@ import (
 )
 
 // RedisOptions defines options for redis cluster.
+// RedisOptions 定义了redis集群的选项。
 type RedisOptions struct {
 	Host                  string   `json:"host"                     mapstructure:"host"                     description:"Redis service host address"`
 	Port                  int      `json:"port"`
@@ -26,6 +27,7 @@ type RedisOptions struct {
 }
 
 // NewRedisOptions create a `zero` value instance.
+// NewRedisOptions创建一个零值的实例
 func NewRedisOptions() *RedisOptions {
 	return &RedisOptions{
 		Host:                  "127.0.0.1",
@@ -52,6 +54,7 @@ func (o *RedisOptions) Validate() []error {
 }
 
 // AddFlags adds flags related to redis storage for a specific APIServer to the specified FlagSet.
+// AddFlags 把特定的APIServer使用的redis存储相关的flags保存到指定的FlagSet中。
 func (o *RedisOptions) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&o.Host, "redis.host", o.Host, "Hostname of your Redis server.")
 	fs.IntVar(&o.Port, "redis.port", o.Port, "The port the Redis server is listening on.")

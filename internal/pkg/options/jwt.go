@@ -15,6 +15,7 @@ import (
 )
 
 // JwtOptions contains configuration items related to API server features.
+// JwtOptions包含API服务功能相关的配置项
 type JwtOptions struct {
 	Realm      string        `json:"realm"       mapstructure:"realm"`
 	Key        string        `json:"key"         mapstructure:"key"`
@@ -23,6 +24,7 @@ type JwtOptions struct {
 }
 
 // NewJwtOptions creates a JwtOptions object with default parameters.
+// NewJwtOptions创建一个默认参数的JwtOptions对象
 func NewJwtOptions() *JwtOptions {
 	defaults := server.NewConfig()
 
@@ -35,6 +37,7 @@ func NewJwtOptions() *JwtOptions {
 }
 
 // ApplyTo applies the run options to the method receiver and returns self.
+// 把JwtOptions的配置应用到通用server的配置中
 func (s *JwtOptions) ApplyTo(c *server.Config) error {
 	c.Jwt = &server.JwtInfo{
 		Realm:      s.Realm,
@@ -51,7 +54,7 @@ func (s *JwtOptions) ApplyTo(c *server.Config) error {
 func (s *JwtOptions) Validate() []error {
 	var errs []error
 
-	if !govalidator.StringLength(s.Key, "6", "32") {
+	if !govalidator.StringLength(s.Key, "6", "32") { // key的长度必须在6到32位之间
 		errs = append(errs, fmt.Errorf("--secret-key must larger than 5 and little than 33"))
 	}
 
@@ -60,6 +63,7 @@ func (s *JwtOptions) Validate() []error {
 
 // AddFlags adds flags related to features for a specific api server to the
 // specified FlagSet.
+// 创建flags，把通过命令行传入的flags添加到指定的FlagSet中
 func (s *JwtOptions) AddFlags(fs *pflag.FlagSet) {
 	if fs == nil {
 		return

@@ -25,6 +25,7 @@ import (
 
 // GenericAPIServer contains state for an iam api server.
 // type GenericAPIServer gin.Engine.
+// GenericAPIServer 包含iam api server的状态
 type GenericAPIServer struct {
 	middlewares []string
 	// SecureServingInfo holds configuration of the TLS server.

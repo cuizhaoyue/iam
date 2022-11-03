@@ -15,6 +15,7 @@ import (
 )
 
 // SecureServingOptions contains configuration items related to HTTPS server startup.
+// SecureServingOptions 包含HTTPS服务启动相关的配置项
 type SecureServingOptions struct {
 	BindAddress string `json:"bind-address" mapstructure:"bind-address"`
 	// BindPort is ignored when Listener is set, will serve HTTPS even with 0.
@@ -22,11 +23,12 @@ type SecureServingOptions struct {
 	// Required set to true means that BindPort cannot be zero.
 	Required bool
 	// ServerCert is the TLS cert info for serving secure traffic
-	ServerCert GeneratableKeyCert `json:"tls"          mapstructure:"tls"`
+	ServerCert GeneratableKeyCert `json:"tls"          mapstructure:"tls"` // 服务证书
 	// AdvertiseAddress net.IP
 }
 
 // CertKey contains configuration items related to certificate.
+// CertKey 包含证书相关的配置项
 type CertKey struct {
 	// CertFile is a file containing a PEM-encoded certificate, and possibly the complete certificate chain
 	CertFile string `json:"cert-file"        mapstructure:"cert-file"`
@@ -35,6 +37,7 @@ type CertKey struct {
 }
 
 // GeneratableKeyCert contains configuration items related to certificate.
+// GeneratableKeyCert 包含证书相关的配置项
 type GeneratableKeyCert struct {
 	// CertKey allows setting an explicit cert/key file to use.
 	CertKey CertKey `json:"cert-key" mapstructure:"cert-key"`
@@ -42,13 +45,14 @@ type GeneratableKeyCert struct {
 	// CertDirectory specifies a directory to write generated certificates to if CertFile/KeyFile aren't explicitly set.
 	// PairName is used to determine the filenames within CertDirectory.
 	// If CertDirectory and PairName are not set, an in-memory certificate will be generated.
-	CertDirectory string `json:"cert-dir"  mapstructure:"cert-dir"`
+	CertDirectory string `json:"cert-dir"  mapstructure:"cert-dir"` // 证书目录
 	// PairName is the name which will be used with CertDirectory to make a cert and key filenames.
 	// It becomes CertDirectory/PairName.crt and CertDirectory/PairName.key
-	PairName string `json:"pair-name" mapstructure:"pair-name"`
+	PairName string `json:"pair-name" mapstructure:"pair-name"` // 创建密钥对时文件的名称
 }
 
 // NewSecureServingOptions creates a SecureServingOptions object with default parameters.
+// 创建带有默认参数的HTTPS配置
 func NewSecureServingOptions() *SecureServingOptions {
 	return &SecureServingOptions{
 		BindAddress: "0.0.0.0",
@@ -134,16 +138,18 @@ func (s *SecureServingOptions) AddFlags(fs *pflag.FlagSet) {
 }
 
 // Complete fills in any fields not set that are required to have valid data.
+// Complete 填充没有设置但是需要有效数据的字段
 func (s *SecureServingOptions) Complete() error {
 	if s == nil || s.BindPort == 0 {
 		return nil
 	}
 
+	// 验证证书文件是否存在
 	keyCert := &s.ServerCert.CertKey
 	if len(keyCert.CertFile) != 0 || len(keyCert.KeyFile) != 0 {
 		return nil
 	}
-
+	// 没有指定证书文件时要指定证书目录和证书前缀名称pair-name
 	if len(s.ServerCert.CertDirectory) > 0 {
 		if len(s.ServerCert.PairName) == 0 {
 			return fmt.Errorf("--secure.tls.pair-name is required if --secure.tls.cert-dir is set")
@@ -156,6 +162,7 @@ func (s *SecureServingOptions) Complete() error {
 }
 
 // CreateListener create net listener by given address and returns it and port.
+// CreateListener 通过指定的地址创建一个tcp连接监听器，然后返回监听器和端口
 func CreateListener(addr string) (net.Listener, int, error) {
 	network := "tcp"
 

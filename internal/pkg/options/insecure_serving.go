@@ -16,6 +16,7 @@ import (
 
 // InsecureServingOptions are for creating an unauthenticated, unauthorized, insecure port.
 // No one should be using these anymore.
+// http服务的配置选项
 type InsecureServingOptions struct {
 	BindAddress string `json:"bind-address" mapstructure:"bind-address"`
 	BindPort    int    `json:"bind-port"    mapstructure:"bind-port"`
@@ -23,6 +24,7 @@ type InsecureServingOptions struct {
 
 // NewInsecureServingOptions is for creating an unauthenticated, unauthorized, insecure port.
 // No one should be using these anymore.
+// 创建HTTP服务的配置选项
 func NewInsecureServingOptions() *InsecureServingOptions {
 	return &InsecureServingOptions{
 		BindAddress: "127.0.0.1",
@@ -31,6 +33,7 @@ func NewInsecureServingOptions() *InsecureServingOptions {
 }
 
 // ApplyTo applies the run options to the method receiver and returns self.
+// ApplyTo 把当前配置应用到通用服务的配置中
 func (s *InsecureServingOptions) ApplyTo(c *server.Config) error {
 	c.InsecureServing = &server.InsecureServingInfo{
 		Address: net.JoinHostPort(s.BindAddress, strconv.Itoa(s.BindPort)),

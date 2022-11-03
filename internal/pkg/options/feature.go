@@ -11,12 +11,14 @@ import (
 )
 
 // FeatureOptions contains configuration items related to API server features.
+// 包含API server功能相关的配置项
 type FeatureOptions struct {
 	EnableProfiling bool `json:"profiling"      mapstructure:"profiling"`
 	EnableMetrics   bool `json:"enable-metrics" mapstructure:"enable-metrics"`
 }
 
 // NewFeatureOptions creates a FeatureOptions object with default parameters.
+// NewFeatureOptions创建一个默认参数的FeatureOptions对象，字段值是通用配置的默认参数值。
 func NewFeatureOptions() *FeatureOptions {
 	defaults := server.NewConfig()
 
@@ -27,6 +29,7 @@ func NewFeatureOptions() *FeatureOptions {
 }
 
 // ApplyTo applies the run options to the method receiver and returns self.
+// 把FeatureOptions对象的值应用到通用服务配置上
 func (o *FeatureOptions) ApplyTo(c *server.Config) error {
 	c.EnableProfiling = o.EnableProfiling
 	c.EnableMetrics = o.EnableMetrics
@@ -42,6 +45,7 @@ func (o *FeatureOptions) Validate() []error {
 
 // AddFlags adds flags related to features for a specific api server to the
 // specified FlagSet.
+// 用过命令行参数把参数值加入到指定的FlagSet中
 func (o *FeatureOptions) AddFlags(fs *pflag.FlagSet) {
 	if fs == nil {
 		return

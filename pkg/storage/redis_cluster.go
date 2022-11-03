@@ -22,6 +22,7 @@ import (
 )
 
 // Config defines options for redis cluster.
+// Config定义了redis集群的选项
 type Config struct {
 	Host                  string
 	Port                  int
@@ -39,7 +40,7 @@ type Config struct {
 }
 
 // ErrRedisIsDown is returned when we can't communicate with redis.
-var ErrRedisIsDown = errors.New("storage: Redis is either down or ws not configured")
+var ErrRedisIsDown = errors.New("storage: Redis is either down or not configured")
 
 var (
 	singlePool      atomic.Value

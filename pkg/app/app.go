@@ -64,26 +64,29 @@ Use "%s --help" for more information about a command.{{end}}
 
 // App is the main structure of a cli application.
 // It is recommended that an app be created with the app.NewApp() function.
+// App是cli应用的主要结构体
 type App struct {
-	basename    string
-	name        string
-	description string
+	basename    string //
+	name        string // 应用名称
+	description string // 应用描述
 	options     CliOptions
-	runFunc     RunFunc
+	runFunc     RunFunc // 定义启用时的callback
 	silence     bool
 	noVersion   bool
 	noConfig    bool
 	commands    []*Command
-	args        cobra.PositionalArgs
-	cmd         *cobra.Command
+	args        cobra.PositionalArgs // 位置参数
+	cmd         *cobra.Command       // 应用的命令行
 }
 
 // Option defines optional parameters for initializing the application
 // structure.
+// 选项模式，定义匿名函数用来初始化应用的可选参数
 type Option func(*App)
 
 // WithOptions to open the application's function to read from the command line
 // or read parameters from the configuration file.
+// 打开应用的函数去读取命令行参数或者配置文件的参数
 func WithOptions(opt CliOptions) Option {
 	return func(a *App) {
 		a.options = opt
@@ -154,6 +157,7 @@ func WithDefaultValidArgs() Option {
 
 // NewApp creates a new application instance based on the given application name,
 // binary name, and other options.
+// 创建一个应用实例，包含应用名称及其它选项。
 func NewApp(name string, basename string, opts ...Option) *App {
 	a := &App{
 		name:     name,

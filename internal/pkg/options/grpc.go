@@ -12,10 +12,11 @@ import (
 
 // GRPCOptions are for creating an unauthenticated, unauthorized, insecure port.
 // No one should be using these anymore.
+// GRPCOptions 用于创建不进行认证、不授权和非安全的端口
 type GRPCOptions struct {
-	BindAddress string `json:"bind-address" mapstructure:"bind-address"`
-	BindPort    int    `json:"bind-port"    mapstructure:"bind-port"`
-	MaxMsgSize  int    `json:"max-msg-size" mapstructure:"max-msg-size"`
+	BindAddress string `json:"bind-address" mapstructure:"bind-address"` // grpc服务的地址
+	BindPort    int    `json:"bind-port"    mapstructure:"bind-port"`    // grpc服务的端口
+	MaxMsgSize  int    `json:"max-msg-size" mapstructure:"max-msg-size"` // 信息最大长度
 }
 
 // NewGRPCOptions is for creating an unauthenticated, unauthorized, insecure port.
@@ -30,9 +31,10 @@ func NewGRPCOptions() *GRPCOptions {
 
 // Validate is used to parse and validate the parameters entered by the user at
 // the command line when the program starts.
+// Validate 用来解析和验证程序启动时用户通过命令行传入的参数是否正确
 func (s *GRPCOptions) Validate() []error {
 	var errors []error
-
+	// 验证端口是否位于0~65535之间
 	if s.BindPort < 0 || s.BindPort > 65535 {
 		errors = append(
 			errors,
@@ -48,6 +50,7 @@ func (s *GRPCOptions) Validate() []error {
 
 // AddFlags adds flags related to features for a specific api server to the
 // specified FlagSet.
+// 添加功能相关的flags到指定的FlagSet中
 func (s *GRPCOptions) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&s.BindAddress, "grpc.bind-address", s.BindAddress, ""+
 		"The IP address on which to serve the --grpc.bind-port(set to 0.0.0.0 for all IPv4 interfaces and :: for all IPv6 interfaces).")

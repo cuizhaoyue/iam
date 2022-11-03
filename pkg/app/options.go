@@ -10,6 +10,7 @@ import (
 
 // CliOptions abstracts configuration options for reading parameters from the
 // command line.
+// CliOptions抽取了从命令行读取的配置选项。
 type CliOptions interface {
 	// AddFlags adds flags to the specified FlagSet object.
 	// AddFlags(fs *pflag.FlagSet)
@@ -19,6 +20,7 @@ type CliOptions interface {
 
 // ConfigurableOptions abstracts configuration options for reading parameters
 // from a configuration file.
+// ConfigurableOptions 抽取了从配置文件读取到的参数的配置选项。
 type ConfigurableOptions interface {
 	// ApplyFlags parsing parameters from the command line or configuration file
 	// to the options instance.
@@ -26,11 +28,13 @@ type ConfigurableOptions interface {
 }
 
 // CompleteableOptions abstracts options which can be completed.
+// CompleteableOptions 抽象可以被补全的选项。
 type CompleteableOptions interface {
 	Complete() error
 }
 
 // PrintableOptions abstracts options which can be printed.
+// PrintableOptions抽象可以被打印的选项。
 type PrintableOptions interface {
 	String() string
 }

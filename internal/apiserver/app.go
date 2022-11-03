@@ -21,9 +21,9 @@ Find more iam-apiserver information at:
 
 // NewApp creates an App object with default parameters.
 func NewApp(basename string) *app.App {
-	opts := options.NewOptions()
+	opts := options.NewOptions() // 创建一个带有默认参数的Options对象
 	application := app.NewApp("IAM API Server",
-		basename,
+		basename, // basename:`iam-apiserver`
 		app.WithOptions(opts),
 		app.WithDescription(commandDesc),
 		app.WithDefaultValidArgs(),
