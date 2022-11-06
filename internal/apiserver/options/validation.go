@@ -5,6 +5,7 @@
 package options
 
 // Validate checks Options and return a slice of found errs.
+// Validate 检查Options的配置并返回errs数组
 func (o *Options) Validate() []error {
 	var errs []error
 

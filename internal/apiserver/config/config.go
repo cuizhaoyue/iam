@@ -7,12 +7,14 @@ package config
 import "github.com/marmotedu/iam/internal/apiserver/options"
 
 // Config is the running configuration structure of the IAM pump service.
+// 应用配置
 type Config struct {
 	*options.Options
 }
 
 // CreateConfigFromOptions creates a running configuration instance based
 // on a given IAM pump command line or configuration file option.
+// CreateConfigFromOptions构建应用配置
 func CreateConfigFromOptions(opts *options.Options) (*Config, error) {
 	return &Config{opts}, nil
 }

@@ -37,6 +37,7 @@ type preparedAPIServer struct {
 }
 
 // ExtraConfig defines extra configuration for the iam-apiserver.
+// ExtraConfig定义了iam-apiserver服务额外的配置
 type ExtraConfig struct {
 	Addr         string
 	MaxMsgSize   int
@@ -46,24 +47,24 @@ type ExtraConfig struct {
 }
 
 func createAPIServer(cfg *config.Config) (*apiServer, error) {
-	gs := shutdown.New()
-	gs.AddShutdownManager(posixsignal.NewPosixSignalManager())
+	gs := shutdown.New()                                       // 用于优雅关闭服务
+	gs.AddShutdownManager(posixsignal.NewPosixSignalManager()) // 添加shutdownmanager
 
-	genericConfig, err := buildGenericConfig(cfg)
+	genericConfig, err := buildGenericConfig(cfg) // 传入应用配置创建HTTP/HTTPS的服务配置
 	if err != nil {
 		return nil, err
 	}
 
-	extraConfig, err := buildExtraConfig(cfg)
+	extraConfig, err := buildExtraConfig(cfg) // 传入应用配置创建GRPC的服务配置
 	if err != nil {
 		return nil, err
 	}
 
-	genericServer, err := genericConfig.Complete().New()
+	genericServer, err := genericConfig.Complete().New() // 对HTTP服务配置进行补全，然后New一个HTTP服务实例
 	if err != nil {
 		return nil, err
 	}
-	extraServer, err := extraConfig.complete().New()
+	extraServer, err := extraConfig.complete().New() // 对GRPC服务配置进行实例，然后New一个GRPC服务实例
 	if err != nil {
 		return nil, err
 	}
@@ -146,8 +147,9 @@ func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
 	return &grpcAPIServer{grpcServer, c.Addr}, nil
 }
 
+// buildGenericConfig 根据应用配置创建HTTP服务配置
 func buildGenericConfig(cfg *config.Config) (genericConfig *genericapiserver.Config, lastErr error) {
-	genericConfig = genericapiserver.NewConfig()
+	genericConfig = genericapiserver.NewConfig() // 通用的服务配置
 	if lastErr = cfg.GenericServerRunOptions.ApplyTo(genericConfig); lastErr != nil {
 		return
 	}
@@ -170,7 +172,7 @@ func buildGenericConfig(cfg *config.Config) (genericConfig *genericapiserver.Con
 //nolint: unparam
 func buildExtraConfig(cfg *config.Config) (*ExtraConfig, error) {
 	return &ExtraConfig{
-		Addr:         fmt.Sprintf("%s:%d", cfg.GRPCOptions.BindAddress, cfg.GRPCOptions.BindPort),
+		Addr:         fmt.Sprintf("%s:%d", cfg.GRPCOptions.BindAddress, cfg.GRPCOptions.BindPort), // 设置grpc服务的监听地址
 		MaxMsgSize:   cfg.GRPCOptions.MaxMsgSize,
 		ServerCert:   cfg.SecureServing.ServerCert,
 		mysqlOptions: cfg.MySQLOptions,

@@ -16,6 +16,7 @@ import (
 )
 
 // Options runs an iam api server.
+// Options配置：用来构建命令行参数，它的值来自于命令行选项或者配置文件（也可能是二者 Merge 后的配置）。Options 可以用来构建应用框架，Options 配置也是应用配置的输入。
 type Options struct {
 	GenericServerRunOptions *genericoptions.ServerRunOptions       `json:"server"   mapstructure:"server"`
 	GRPCOptions             *genericoptions.GRPCOptions            `json:"grpc"     mapstructure:"grpc"`
@@ -52,6 +53,7 @@ func (o *Options) ApplyTo(c *server.Config) error {
 }
 
 // Flags returns flags for a specific APIServer by section name.
+// Flags 把Options选项的配置加入到各个对应的FlagSet中，根据各区域名称返回特定的APIServer的FlagSet
 func (o *Options) Flags() (fss cliflag.NamedFlagSets) {
 	o.GenericServerRunOptions.AddFlags(fss.FlagSet("generic"))
 	o.JwtOptions.AddFlags(fss.FlagSet("jwt"))

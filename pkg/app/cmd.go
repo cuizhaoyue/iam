@@ -17,6 +17,7 @@ import (
 // Command is a sub command structure of a cli application.
 // It is recommended that a command be created with the app.NewCommand()
 // function.
+// Command是app的一个子命令结构，推荐使用app.NewCommand()生成
 type Command struct {
 	usage    string
 	desc     string
@@ -73,13 +74,14 @@ func (c *Command) AddCommands(cmds ...*Command) {
 	c.commands = append(c.commands, cmds...)
 }
 
+// 根据自定义的Command创建app的cobra.Command命令
 func (c *Command) cobraCommand() *cobra.Command {
-	cmd := &cobra.Command{
+	cmd := &cobra.Command{ // 添加使用信息和
 		Use:   c.usage,
 		Short: c.desc,
 	}
-	cmd.SetOutput(os.Stdout)
-	cmd.Flags().SortFlags = false
+	cmd.SetOut(os.Stdout)         // 添加使用信息输出位置
+	cmd.Flags().SortFlags = false // help/usage信息不排序
 	if len(c.commands) > 0 {
 		for _, command := range c.commands {
 			cmd.AddCommand(command.cobraCommand())
@@ -120,6 +122,7 @@ func (a *App) AddCommands(cmds ...*Command) {
 
 // FormatBaseName is formatted as an executable file name under different
 // operating systems according to the given name.
+// FormatBaseName 根据不同的操作系统把给定的名称格式化成可执行文件名称，win下要删除`.exe`后缀
 func FormatBaseName(basename string) string {
 	// Make case-insensitive and strip executable suffix if present
 	if runtime.GOOS == "windows" {

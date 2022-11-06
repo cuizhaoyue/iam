@@ -65,6 +65,7 @@ Use "%s --help" for more information about a command.{{end}}
 // App is the main structure of a cli application.
 // It is recommended that an app be created with the app.NewApp() function.
 // App是cli应用的主要结构体
+// 应用配置：iam-apiserver 组件中需要的一切配置。有很多地方需要配置，例如，启动 HTTP/GRPC 需要配置监听地址和端口，初始化数据库需要配置数据库地址、用户名、密码等。
 type App struct {
 	basename    string //
 	name        string // 应用名称
@@ -88,15 +89,17 @@ type Option func(*App)
 // or read parameters from the configuration file.
 // 打开应用的函数去读取命令行参数或者配置文件的参数
 func WithOptions(opt CliOptions) Option {
-	return func(a *App) {
+	return func(a *App) { // 匿名函数的函数体是设置App的字段值
 		a.options = opt
 	}
 }
 
 // RunFunc defines the application's startup callback function.
+// RunFunc 定义了应用运行时的callback函数
 type RunFunc func(basename string) error
 
 // WithRunFunc is used to set the application startup callback function option.
+// WithRunFunc 用来设置应用启动时的callback函数选项
 func WithRunFunc(run RunFunc) Option {
 	return func(a *App) {
 		a.runFunc = run
@@ -104,6 +107,7 @@ func WithRunFunc(run RunFunc) Option {
 }
 
 // WithDescription is used to set the description of the application.
+// WithDescription 用来设置app的描述信息
 func WithDescription(desc string) Option {
 	return func(a *App) {
 		a.description = desc
@@ -113,6 +117,7 @@ func WithDescription(desc string) Option {
 // WithSilence sets the application to silent mode, in which the program startup
 // information, configuration information, and version information are not
 // printed in the console.
+// WithSilence设置app为静默模式，在该模式下程序启动信息、配置信息以及版本信息不会打印到console
 func WithSilence() Option {
 	return func(a *App) {
 		a.silence = true
@@ -120,6 +125,7 @@ func WithSilence() Option {
 }
 
 // WithNoVersion set the application does not provide version flag.
+// WithNoVersion设置app不提供版本的flag
 func WithNoVersion() Option {
 	return func(a *App) {
 		a.noVersion = true
@@ -127,6 +133,7 @@ func WithNoVersion() Option {
 }
 
 // WithNoConfig set the application does not provide config flag.
+// WithNoConfig 设置app不提供config的flag
 func WithNoConfig() Option {
 	return func(a *App) {
 		a.noConfig = true
@@ -134,6 +141,7 @@ func WithNoConfig() Option {
 }
 
 // WithValidArgs set the validation function to valid non-flag arguments.
+// WithValidArgs设置验证函数去验证非标签函数
 func WithValidArgs(args cobra.PositionalArgs) Option {
 	return func(a *App) {
 		a.args = args
@@ -141,11 +149,12 @@ func WithValidArgs(args cobra.PositionalArgs) Option {
 }
 
 // WithDefaultValidArgs set default validation function to valid non-flag arguments.
+// WithDefaultValidArgs设置默认的验证函数去验证位置参数
 func WithDefaultValidArgs() Option {
 	return func(a *App) {
 		a.args = func(cmd *cobra.Command, args []string) error {
 			for _, arg := range args {
-				if len(arg) > 0 {
+				if len(arg) > 0 { // 确保参数为空，不为空则返回错误
 					return fmt.Errorf("%q does not take any arguments, got %q", cmd.CommandPath(), args)
 				}
 			}
@@ -159,48 +168,50 @@ func WithDefaultValidArgs() Option {
 // binary name, and other options.
 // 创建一个应用实例，包含应用名称及其它选项。
 func NewApp(name string, basename string, opts ...Option) *App {
-	a := &App{
+	a := &App{ // 设置基本应用配置
 		name:     name,
 		basename: basename,
 	}
 
+	// 根据Options设置应用配置
 	for _, o := range opts {
 		o(a)
 	}
 
-	a.buildCommand()
+	a.buildCommand() // 构建app的命令行参数
 
 	return a
 }
 
+// 创建应用的命令行参数
 func (a *App) buildCommand() {
 	cmd := cobra.Command{
-		Use:   FormatBaseName(a.basename),
-		Short: a.name,
-		Long:  a.description,
+		Use:   FormatBaseName(a.basename), // usage中的一行使用信息，basename在linux下可以不用做处理
+		Short: a.name,                     // help输出的简短描述
+		Long:  a.description,              // `help command`输出的详细描述
 		// stop printing usage when the command errors
-		SilenceUsage:  true,
-		SilenceErrors: true,
-		Args:          a.args,
+		SilenceUsage:  true,   // 发生错误时不打印usage
+		SilenceErrors: true,   // 静默下游错误
+		Args:          a.args, // 位置参数
 	}
 	// cmd.SetUsageTemplate(usageTemplate)
-	cmd.SetOut(os.Stdout)
-	cmd.SetErr(os.Stderr)
-	cmd.Flags().SortFlags = true
-	cliflag.InitFlags(cmd.Flags())
+	cmd.SetOut(os.Stdout)          // 设置usage的输出位置
+	cmd.SetErr(os.Stderr)          // 错误信息的输出位置
+	cmd.Flags().SortFlags = true   // 为help/usage信息中的flags排序
+	cliflag.InitFlags(cmd.Flags()) // 初始化pflag.FlagSet，添加格式化函数对传入的flag的格式进行转换，把`_`转换成`-`,把标准库flag的FlagSet添加到pflag中的FlagSet中
 
-	if len(a.commands) > 0 {
+	if len(a.commands) > 0 { // 如果app中含有子command则添加到cmd中
 		for _, command := range a.commands {
 			cmd.AddCommand(command.cobraCommand())
 		}
-		cmd.SetHelpCommand(helpCommand(FormatBaseName(a.basename)))
+		cmd.SetHelpCommand(helpCommand(FormatBaseName(a.basename))) // 设置help信息的Command
 	}
-	if a.runFunc != nil {
+	if a.runFunc != nil { // 设置运行函数
 		cmd.RunE = a.runCommand
 	}
 
 	var namedFlagSets cliflag.NamedFlagSets
-	if a.options != nil {
+	if a.options != nil { // 将Options配置的Flag添加到FlagSet中
 		namedFlagSets = a.options.Flags()
 		fs := cmd.Flags()
 		for _, f := range namedFlagSets.FlagSets {
@@ -208,17 +219,17 @@ func (a *App) buildCommand() {
 		}
 	}
 
-	if !a.noVersion {
+	if !a.noVersion { // 添加version相关的Flag到global FlagSet中
 		verflag.AddFlags(namedFlagSets.FlagSet("global"))
 	}
-	if !a.noConfig {
+	if !a.noConfig { // 添加config相关的Flag到global FlagSet中
 		addConfigFlag(a.basename, namedFlagSets.FlagSet("global"))
 	}
 	globalflag.AddGlobalFlags(namedFlagSets.FlagSet("global"), cmd.Name())
 	// add new global flagset to cmd FlagSet
-	cmd.Flags().AddFlagSet(namedFlagSets.FlagSet("global"))
+	cmd.Flags().AddFlagSet(namedFlagSets.FlagSet("global")) // 添加global FlagSet到 cmd FlagSet中
 
-	addCmdTemplate(&cmd, namedFlagSets)
+	addCmdTemplate(&cmd, namedFlagSets) // 设置cmd的help/usage
 	a.cmd = &cmd
 }
 
@@ -235,6 +246,7 @@ func (a *App) Command() *cobra.Command {
 	return a.cmd
 }
 
+// runCommand 运行app的Command命令
 func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 	printWorkingDir()
 	cliflag.PrintFlags(cmd.Flags())
@@ -298,16 +310,17 @@ func printWorkingDir() {
 	log.Infof("%v WorkingDir: %s", progressMessage, wd)
 }
 
+// 设置cmd的help/usage
 func addCmdTemplate(cmd *cobra.Command, namedFlagSets cliflag.NamedFlagSets) {
 	usageFmt := "Usage:\n  %s\n"
 	cols, _, _ := term.TerminalSize(cmd.OutOrStdout())
-	cmd.SetUsageFunc(func(cmd *cobra.Command) error {
+	cmd.SetUsageFunc(func(cmd *cobra.Command) error { // 设置usage函数
 		fmt.Fprintf(cmd.OutOrStderr(), usageFmt, cmd.UseLine())
 		cliflag.PrintSections(cmd.OutOrStderr(), namedFlagSets, cols)
 
 		return nil
 	})
-	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+	cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) { // 设置help函数
 		fmt.Fprintf(cmd.OutOrStdout(), "%s\n\n"+usageFmt, cmd.Long, cmd.UseLine())
 		cliflag.PrintSections(cmd.OutOrStdout(), namedFlagSets, cols)
 	})

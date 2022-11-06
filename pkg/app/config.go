@@ -22,35 +22,36 @@ const configFlagName = "config"
 var cfgFile string
 
 //nolint: gochecknoinits
-func init() {
+func init() { // 初始化中设置配置文件路径
 	pflag.StringVarP(&cfgFile, "config", "c", cfgFile, "Read configuration from specified `FILE`, "+
 		"support JSON, TOML, YAML, HCL, or Java properties formats.")
 }
 
 // addConfigFlag adds flags for a specific server to the specified FlagSet
 // object.
+// addConfigFlag 添加config的flag到指定的FlagSet中，读取环境变量和配置文件
 func addConfigFlag(basename string, fs *pflag.FlagSet) {
 	fs.AddFlag(pflag.Lookup(configFlagName))
 
-	viper.AutomaticEnv()
+	viper.AutomaticEnv() // 读取环境变量
 	viper.SetEnvPrefix(strings.Replace(strings.ToUpper(basename), "-", "_", -1))
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 
-	cobra.OnInitialize(func() {
+	cobra.OnInitialize(func() { // 执行命令前读取配置文件
 		if cfgFile != "" {
-			viper.SetConfigFile(cfgFile)
+			viper.SetConfigFile(cfgFile) // 指定了配置文件路径时直接读取配置文件
 		} else {
-			viper.AddConfigPath(".")
+			viper.AddConfigPath(".") // 添加配置文件的搜索路径
 
 			if names := strings.Split(basename, "-"); len(names) > 1 {
 				viper.AddConfigPath(filepath.Join(homedir.HomeDir(), "."+names[0]))
 				viper.AddConfigPath(filepath.Join("/etc", names[0]))
 			}
 
-			viper.SetConfigName(basename)
+			viper.SetConfigName(basename) // 设置配置文件的名称
 		}
 
-		if err := viper.ReadInConfig(); err != nil {
+		if err := viper.ReadInConfig(); err != nil { // 载入配置文件
 			_, _ = fmt.Fprintf(os.Stderr, "Error: failed to read configuration file(%s): %v\n", cfgFile, err)
 			os.Exit(1)
 		}

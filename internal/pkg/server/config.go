@@ -30,7 +30,7 @@ const (
 
 // Config is a structure used to configure a GenericAPIServer.
 // Its members are sorted roughly in order of importance for composers.
-// Config是一个用来配置GenericAPIServer的配置结构体
+// Config是HTTP服务器的配置
 type Config struct {
 	SecureServing   *SecureServingInfo
 	InsecureServing *InsecureServingInfo

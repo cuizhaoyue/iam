@@ -31,6 +31,7 @@ func NewServerRunOptions() *ServerRunOptions {
 }
 
 // ApplyTo applies the run options to the method receiver and returns self.
+// 把选项配置应用到服务配置
 func (s *ServerRunOptions) ApplyTo(c *server.Config) error {
 	c.Mode = s.Mode
 	c.Healthz = s.Healthz
