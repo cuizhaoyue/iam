@@ -115,7 +115,7 @@ func (c *Config) Complete() CompletedConfig {
 }
 
 // New returns a new instance of GenericAPIServer from the given config.
-// 根据给定的配置创建一个GenericAPIServer实例
+// 根据给定的配置创建一个HTTP/HTTPS服务实例
 func (c CompletedConfig) New() (*GenericAPIServer, error) {
 	// setMode before gin.New()
 	gin.SetMode(c.Mode)
