@@ -9,7 +9,7 @@ import "github.com/marmotedu/iam/internal/apiserver/config"
 // Run runs the specified APIServer. This should never exit.
 // Run 运行指定的APIServer
 func Run(cfg *config.Config) error {
-	server, err := createAPIServer(cfg)
+	server, err := createAPIServer(cfg) // 创建server实例
 	if err != nil {
 		return err
 	}

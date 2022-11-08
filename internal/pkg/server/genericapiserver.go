@@ -51,28 +51,29 @@ func initGenericAPIServer(s *GenericAPIServer) {
 	// do some setup
 	// s.GET(path, ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	s.Setup()
-	s.InstallMiddlewares()
-	s.InstallAPIs()
+	s.Setup()              // 设置gin engine
+	s.InstallMiddlewares() // 安装gin中间件
+	s.InstallAPIs()        // 安装通用的api，包括健康检查、启用Metric、启用pprof
 }
 
 // InstallAPIs install generic apis.
+// InstallAPIs 安装通用的api
 func (s *GenericAPIServer) InstallAPIs() {
 	// install healthz handler
-	if s.healthz {
+	if s.healthz { // 安装健康检查api
 		s.GET("/healthz", func(c *gin.Context) {
 			core.WriteResponse(c, nil, map[string]string{"status": "ok"})
 		})
 	}
 
 	// install metric handler
-	if s.enableMetrics {
+	if s.enableMetrics { // 导出gin相关的metric
 		prometheus := ginprometheus.NewPrometheus("gin")
 		prometheus.Use(s.Engine)
 	}
 
 	// install pprof handler
-	if s.enableProfiling {
+	if s.enableProfiling { // 启用pprof
 		pprof.Register(s.Engine)
 	}
 
@@ -82,20 +83,21 @@ func (s *GenericAPIServer) InstallAPIs() {
 }
 
 // Setup do some setup work for gin engine.
-func (s *GenericAPIServer) Setup() {
+func (s *GenericAPIServer) Setup() { // 设置gin的debug日志输出格式
 	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
 		log.Infof("%-6s %-s --> %s (%d handlers)", httpMethod, absolutePath, handlerName, nuHandlers)
 	}
 }
 
 // InstallMiddlewares install generic middlewares.
+// InstallMiddlewares 安装通用的中间件
 func (s *GenericAPIServer) InstallMiddlewares() {
-	// necessary middlewares
-	s.Use(middleware.RequestID())
-	s.Use(middleware.Context())
+	// necessary middlewares 安装两个必要的中间件
+	s.Use(middleware.RequestID()) // 设置请求id
+	s.Use(middleware.Context())   // 上下文中添加必要的键值对
 
-	// install custom middlewares
-	for _, m := range s.middlewares {
+	// install custom middlewares 安装自定义的中间件，配置文件中可以设置
+	for _, m := range s.middlewares { // 从中间件注册器中寻找配置的中间件
 		mw, ok := middleware.Middlewares[m]
 		if !ok {
 			log.Warnf("can not find middleware: %s", m)

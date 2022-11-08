@@ -57,6 +57,7 @@ var (
 )
 
 // GetMySQLFactoryOr create mysql factory with the given config.
+// 根据给定的配置创建mysql工厂
 func GetMySQLFactoryOr(opts *genericoptions.MySQLOptions) (store.Factory, error) {
 	if opts == nil && mysqlFactory == nil {
 		return nil, fmt.Errorf("failed to get mysql store fatory")

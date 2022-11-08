@@ -12,6 +12,7 @@ import (
 
 // ServerRunOptions contains the options while running a generic api server.
 // ServerRunOptions 包含运行一个通用api服务时的选项
+// 应用配置：iam-apiserver 组件中需要的一切配置。有很多地方需要配置，例如，启动 HTTP/GRPC 需要配置监听地址和端口，初始化数据库需要配置数据库地址、用户名、密码等。
 type ServerRunOptions struct {
 	Mode        string   `json:"mode"        mapstructure:"mode"`
 	Healthz     bool     `json:"healthz"     mapstructure:"healthz"`

@@ -65,7 +65,6 @@ Use "%s --help" for more information about a command.{{end}}
 // App is the main structure of a cli application.
 // It is recommended that an app be created with the app.NewApp() function.
 // App是cli应用的主要结构体
-// 应用配置：iam-apiserver 组件中需要的一切配置。有很多地方需要配置，例如，启动 HTTP/GRPC 需要配置监听地址和端口，初始化数据库需要配置数据库地址、用户名、密码等。
 type App struct {
 	basename    string //
 	name        string // 应用名称

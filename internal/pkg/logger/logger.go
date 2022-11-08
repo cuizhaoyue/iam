@@ -19,7 +19,7 @@ import (
 	"github.com/marmotedu/iam/pkg/log"
 )
 
-// Define colors.
+// Define colors. 定义颜色
 const (
 	Reset       = "\033[0m"
 	Red         = "\033[31m"
@@ -49,6 +49,7 @@ type Writer interface {
 }
 
 // Config defines a gorm logger configuration.
+// 定义gorm logger配置
 type Config struct {
 	SlowThreshold time.Duration
 	Colorful      bool
@@ -56,6 +57,7 @@ type Config struct {
 }
 
 // New create a gorm logger instance.
+// 新建一个gorm logger实例
 func New(level int) gormlogger.Interface {
 	var (
 		infoStr      = "%s[info] "

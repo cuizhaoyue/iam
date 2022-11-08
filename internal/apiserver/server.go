@@ -46,6 +46,7 @@ type ExtraConfig struct {
 	// etcdOptions      *genericoptions.EtcdOptions
 }
 
+// 创建apiserver实例
 func createAPIServer(cfg *config.Config) (*apiServer, error) {
 	gs := shutdown.New()                                       // 用于优雅关闭服务
 	gs.AddShutdownManager(posixsignal.NewPosixSignalManager()) // 添加shutdownmanager
@@ -60,11 +61,11 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 		return nil, err
 	}
 
-	genericServer, err := genericConfig.Complete().New() // 对HTTP服务配置进行补全，然后New一个HTTP服务实例
+	genericServer, err := genericConfig.Complete().New() // 对HTTP服务配置进行补全，然后New一个REST API SERVER实例
 	if err != nil {
 		return nil, err
 	}
-	extraServer, err := extraConfig.complete().New() // 对GRPC服务配置进行实例，然后New一个GRPC服务实例
+	extraServer, err := extraConfig.complete().New() // 对GRPC服务配置进行实例，然后New一个GRPC API SERVER实例
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +116,9 @@ type completedExtraConfig struct {
 }
 
 // Complete fills in any fields not set that are required to have valid data and can be derived from other fields.
+// 对GRPC服务配置进行补全
 func (c *ExtraConfig) complete() *completedExtraConfig {
-	if c.Addr == "" {
+	if c.Addr == "" { // 如果grpc服务没有配置监听地址则配置默认地址
 		c.Addr = "127.0.0.1:8081"
 	}
 
@@ -125,6 +127,7 @@ func (c *ExtraConfig) complete() *completedExtraConfig {
 
 // New create a grpcAPIServer instance.
 func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
+	// 创建grpc服务
 	creds, err := credentials.NewServerTLSFromFile(c.ServerCert.CertKey.CertFile, c.ServerCert.CertKey.KeyFile)
 	if err != nil {
 		log.Fatalf("Failed to generate credentials %s", err.Error())

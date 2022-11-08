@@ -9,6 +9,7 @@ package store
 var client Factory
 
 // Factory defines the iam platform storage interface.
+// 定义iam平台的存储接口
 type Factory interface {
 	Users() UserStore
 	Secrets() SecretStore

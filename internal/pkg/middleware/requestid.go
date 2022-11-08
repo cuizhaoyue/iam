@@ -19,19 +19,20 @@ const (
 )
 
 // RequestID is a middleware that injects a 'X-Request-ID' into the context and request/response header of each request.
+// RequestID 是一个中间件，它插入'X-Request-ID'到上下文和每个请求的request/response的header中
 func RequestID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Check for incoming header, use it if exists
-		rid := c.GetHeader(XRequestIDKey)
+		rid := c.GetHeader(XRequestIDKey) // 检查传入的header是否有请求id，如果有则使用它
 
-		if rid == "" {
+		if rid == "" { // 如果没有请求id则创建一个uuid插入到header中和Context中
 			rid = uuid.Must(uuid.NewV4()).String()
 			c.Request.Header.Set(XRequestIDKey, rid)
 			c.Set(XRequestIDKey, rid)
 		}
 
 		// Set XRequestIDKey header
-		c.Writer.Header().Set(XRequestIDKey, rid)
+		c.Writer.Header().Set(XRequestIDKey, rid) // response中也要写入请求id
 		c.Next()
 	}
 }

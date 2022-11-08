@@ -14,10 +14,11 @@ import (
 const UsernameKey = "username"
 
 // Context is a middleware that injects common prefix fields to gin.Context.
+// Context是一个中间件，它插入通用的前缀字段到gin.Context
 func Context() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Set(log.KeyRequestID, c.GetString(XRequestIDKey))
-		c.Set(log.KeyUsername, c.GetString(UsernameKey))
+		c.Set(log.KeyRequestID, c.GetString(XRequestIDKey)) // 上下文中设置requestID值为请求id
+		c.Set(log.KeyUsername, c.GetString(UsernameKey))    // 设置username的值
 		c.Next()
 	}
 }

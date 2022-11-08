@@ -109,7 +109,7 @@ type CompletedConfig struct {
 
 // Complete fills in any fields not set that are required to have valid data and can be derived
 // from other fields. If you're going to `ApplyOptions`, do that first. It's mutating the receiver.
-// 填充任意需要有有效数据的字段
+// 对HTTP服务配置进行实例
 func (c *Config) Complete() CompletedConfig {
 	return CompletedConfig{c}
 }
@@ -118,9 +118,9 @@ func (c *Config) Complete() CompletedConfig {
 // 根据给定的配置创建一个HTTP/HTTPS服务实例
 func (c CompletedConfig) New() (*GenericAPIServer, error) {
 	// setMode before gin.New()
-	gin.SetMode(c.Mode)
+	gin.SetMode(c.Mode) // 设置服务启动模式
 
-	s := &GenericAPIServer{
+	s := &GenericAPIServer{ // 根据补全的服务配置创建REST API SERVER实例
 		SecureServingInfo:   c.SecureServing,
 		InsecureServingInfo: c.InsecureServing,
 		healthz:             c.Healthz,
@@ -130,7 +130,7 @@ func (c CompletedConfig) New() (*GenericAPIServer, error) {
 		Engine:              gin.New(),
 	}
 
-	initGenericAPIServer(s)
+	initGenericAPIServer(s) // 初始化API SERVER实例
 
 	return s, nil
 }

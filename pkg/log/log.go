@@ -313,6 +313,7 @@ func StdErrLogger() *log.Logger {
 
 // StdInfoLogger returns logger of standard library which writes to supplied zap
 // logger at info level.
+// 返回标准库的logger，它把info级别以上的日志写入到zap logger中
 func StdInfoLogger() *log.Logger {
 	if std == nil {
 		return nil
