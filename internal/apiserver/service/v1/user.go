@@ -19,6 +19,7 @@ import (
 )
 
 // UserSrv defines functions used to handle user request.
+// 定义处理user请求的功能服务
 type UserSrv interface {
 	Create(ctx context.Context, user *v1.User, opts metav1.CreateOptions) error
 	Update(ctx context.Context, user *v1.User, opts metav1.UpdateOptions) error
@@ -30,6 +31,7 @@ type UserSrv interface {
 	ChangePassword(ctx context.Context, user *v1.User) error
 }
 
+// 用户服务，调用仓库层
 type userService struct {
 	store store.Factory
 }
@@ -40,9 +42,9 @@ func newUsers(srv *service) *userService {
 	return &userService{store: srv.store}
 }
 
-// List returns user list in the storage. This function has a good performance.
+// List returns user list in the storage. This function has a good performance. 返回用户列表，高性能实现
 func (u *userService) List(ctx context.Context, opts metav1.ListOptions) (*v1.UserList, error) {
-	users, err := u.store.Users().List(ctx, opts)
+	users, err := u.store.Users().List(ctx, opts) // 获取用户列表
 	if err != nil {
 		log.L(ctx).Errorf("list users from storage failed: %s", err.Error())
 
@@ -50,27 +52,27 @@ func (u *userService) List(ctx context.Context, opts metav1.ListOptions) (*v1.Us
 	}
 
 	wg := sync.WaitGroup{}
-	errChan := make(chan error, 1)
-	finished := make(chan bool, 1)
+	errChan := make(chan error, 1) // 保存错误的通道
+	finished := make(chan bool, 1) // 标志完成的通道
 
-	var m sync.Map
+	var m sync.Map // 并发安全保存数据
 
-	// Improve query efficiency in parallel
+	// Improve query efficiency in parallel 并发查询
 	for _, user := range users.Items {
 		wg.Add(1)
 
-		go func(user *v1.User) {
+		go func(user *v1.User) { // 开启一个goroutine查询数据
 			defer wg.Done()
 
 			// some cost time process
 			policies, err := u.store.Policies().List(ctx, user.Name, metav1.ListOptions{})
-			if err != nil {
+			if err != nil { // 如果出现错误就把错误保存到通道然后退出goroutine
 				errChan <- errors.WithCode(code.ErrDatabase, err.Error())
 
 				return
 			}
 
-			m.Store(user.ID, &v1.User{
+			m.Store(user.ID, &v1.User{ // 并发保存用户数据
 				ObjectMeta: metav1.ObjectMeta{
 					ID:         user.ID,
 					InstanceID: user.InstanceID,
@@ -89,11 +91,11 @@ func (u *userService) List(ctx context.Context, opts metav1.ListOptions) (*v1.Us
 	}
 
 	go func() {
-		wg.Wait()
-		close(finished)
+		wg.Wait()       // 等待goroutine完成
+		close(finished) // 关闭完成通道
 	}()
 
-	select {
+	select { // select语句等待所有goroutine完成或出现错误
 	case <-finished:
 	case err := <-errChan:
 		return nil, err
@@ -110,7 +112,7 @@ func (u *userService) List(ctx context.Context, opts metav1.ListOptions) (*v1.Us
 	return &v1.UserList{ListMeta: users.ListMeta, Items: infos}, nil
 }
 
-// ListWithBadPerformance returns user list in the storage. This function has a bad performance.
+// ListWithBadPerformance returns user list in the storage. This function has a bad performance. 返回用户列表，一般性能实现
 func (u *userService) ListWithBadPerformance(ctx context.Context, opts metav1.ListOptions) (*v1.UserList, error) {
 	users, err := u.store.Users().List(ctx, opts)
 	if err != nil {
@@ -141,8 +143,10 @@ func (u *userService) ListWithBadPerformance(ctx context.Context, opts metav1.Li
 	return &v1.UserList{ListMeta: users.ListMeta, Items: infos}, nil
 }
 
+// Create 创建用户
 func (u *userService) Create(ctx context.Context, user *v1.User, opts metav1.CreateOptions) error {
 	if err := u.store.Users().Create(ctx, user, opts); err != nil {
+		// 判断数据是否已存在
 		if match, _ := regexp.MatchString("Duplicate entry '.*' for key 'idx_name'", err.Error()); match {
 			return errors.WithCode(code.ErrUserAlreadyExist, err.Error())
 		}
@@ -153,6 +157,7 @@ func (u *userService) Create(ctx context.Context, user *v1.User, opts metav1.Cre
 	return nil
 }
 
+// DeleteCollection 删除数据集
 func (u *userService) DeleteCollection(ctx context.Context, usernames []string, opts metav1.DeleteOptions) error {
 	if err := u.store.Users().DeleteCollection(ctx, usernames, opts); err != nil {
 		return errors.WithCode(code.ErrDatabase, err.Error())
@@ -162,7 +167,7 @@ func (u *userService) DeleteCollection(ctx context.Context, usernames []string, 
 }
 
 func (u *userService) Delete(ctx context.Context, username string, opts metav1.DeleteOptions) error {
-	if err := u.store.Users().Delete(ctx, username, opts); err != nil {
+	if err := u.store.Users().Delete(ctx, username, opts); err != nil { // 删除用户
 		return err
 	}
 

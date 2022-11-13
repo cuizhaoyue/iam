@@ -89,11 +89,11 @@ func (s *apiServer) PrepareRun() preparedAPIServer {
 	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error { // 添加停止时的调用函数
 		mysqlStore, _ := mysql.GetMySQLFactoryOr(nil)
 		if mysqlStore != nil {
-			_ = mysqlStore.Close()
+			_ = mysqlStore.Close() // 关闭mysql连接池
 		}
 
-		s.gRPCAPIServer.Close()
-		s.genericAPIServer.Close()
+		s.gRPCAPIServer.Close()    // 关闭grpc服务
+		s.genericAPIServer.Close() // 关闭http服务
 
 		return nil
 	}))
@@ -102,7 +102,7 @@ func (s *apiServer) PrepareRun() preparedAPIServer {
 }
 
 func (s preparedAPIServer) Run() error {
-	go s.gRPCAPIServer.Run()
+	go s.gRPCAPIServer.Run() // 运行grpc服务
 
 	// start shutdown managers
 	if err := s.gs.Start(); err != nil {

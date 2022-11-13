@@ -26,7 +26,7 @@ func (operator *AuthOperator) SetStrategy(strategy AuthStrategy) {
 	operator.strategy = strategy
 }
 
-// AuthFunc execute resource authentication. 执行资源认证
+// AuthFunc execute resource authentication. 执行资源认证操作
 func (operator *AuthOperator) AuthFunc() gin.HandlerFunc {
 	return operator.strategy.AuthFunc()
 }

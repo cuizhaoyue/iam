@@ -37,15 +37,16 @@ type loginInfo struct {
 	Password string `form:"password" json:"password" binding:"required,password"`
 }
 
+// 创建basic认证策略
 func newBasicAuth() middleware.AuthStrategy {
 	return auth.NewBasicStrategy(func(username string, password string) bool {
-		// fetch user from database
+		// fetch user from database 从数据库中获取用户信息
 		user, err := store.Client().Users().Get(context.TODO(), username, metav1.GetOptions{})
 		if err != nil {
 			return false
 		}
 
-		// Compare the login password with the user password.
+		// Compare the login password with the user password. 比较登录密码和数据库中存储的用户密码
 		if err := user.Compare(password); err != nil {
 			return false
 		}

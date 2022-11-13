@@ -9,31 +9,36 @@ package v1
 import "github.com/marmotedu/iam/internal/apiserver/store"
 
 // Service defines functions used to return resource interface.
+// 定义返回资源接口的功能
 type Service interface {
 	Users() UserSrv
 	Secrets() SecretSrv
 	Policies() PolicySrv
 }
 
+// 整体服务实例
 type service struct {
 	store store.Factory
 }
 
-// NewService returns Service interface.
+// NewService returns Service interface. 创建服务实例
 func NewService(store store.Factory) Service {
 	return &service{
 		store: store,
 	}
 }
 
+// Users 创建User相关的服务
 func (s *service) Users() UserSrv {
 	return newUsers(s)
 }
 
+// Secrets 创建secret相关的服务实例
 func (s *service) Secrets() SecretSrv {
 	return newSecrets(s)
 }
 
+// Policies 创建policy相关的服务实例
 func (s *service) Policies() PolicySrv {
 	return newPolicies(s)
 }

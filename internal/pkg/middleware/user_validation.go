@@ -17,10 +17,11 @@ import (
 )
 
 // Validation make sure users have the right resource permission and operation.
+// gin中间件，确认用户拥有正确的资源操作权限
 func Validation() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if err := isAdmin(c); err != nil {
-			switch c.FullPath() {
+		if err := isAdmin(c); err != nil { // 确认用户是否是管理员
+			switch c.FullPath() { // 查看路由完整路径
 			case "/v1/users":
 				if c.Request.Method != http.MethodPost {
 					core.WriteResponse(c, errors.WithCode(code.ErrPermissionDenied, ""), nil)
@@ -48,13 +49,13 @@ func Validation() gin.HandlerFunc {
 // isAdmin make sure the user is administrator.
 // It returns a `github.com/marmotedu/errors.withCode` error.
 func isAdmin(c *gin.Context) error {
-	username := c.GetString(UsernameKey)
-	user, err := store.Client().Users().Get(c, username, metav1.GetOptions{})
+	username := c.GetString(UsernameKey)                                      // 从上下文中获取用户名
+	user, err := store.Client().Users().Get(c, username, metav1.GetOptions{}) // 从数据库中获取该用户的用户信息
 	if err != nil {
 		return errors.WithCode(code.ErrDatabase, err.Error())
 	}
 
-	if user.IsAdmin != 1 {
+	if user.IsAdmin != 1 { // admin用户值为1
 		return errors.WithCode(code.ErrPermissionDenied, "user %s is not a administrator", username)
 	}
 

@@ -17,6 +17,7 @@ import (
 )
 
 // BasicStrategy defines Basic authentication strategy.
+// 定义basic认证策略
 type BasicStrategy struct {
 	compare func(username string, password string) bool
 }
@@ -24,6 +25,7 @@ type BasicStrategy struct {
 var _ middleware.AuthStrategy = &BasicStrategy{}
 
 // NewBasicStrategy create basic strategy with compare function.
+// 创建带有compare参数的basic策略
 func NewBasicStrategy(compare func(username string, password string) bool) BasicStrategy {
 	return BasicStrategy{
 		compare: compare,
@@ -31,6 +33,7 @@ func NewBasicStrategy(compare func(username string, password string) bool) Basic
 }
 
 // AuthFunc defines basic strategy as the gin authentication middleware.
+// 定义作为gin中间件的basic认证策略
 func (b BasicStrategy) AuthFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		auth := strings.SplitN(c.Request.Header.Get("Authorization"), " ", 2)

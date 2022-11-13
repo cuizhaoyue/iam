@@ -122,6 +122,7 @@ func (s *GenericAPIServer) PrepareRun() preparedGenericAPIServer {
 */
 
 // Run spawns the http server. It only returns when the port cannot be listened on initially.
+// 运行http服务。它只有在端口无法被监听时返回。
 func (s *GenericAPIServer) Run() error {
 	// For scalability, use custom HTTP configuration mode here
 	s.insecureServer = &http.Server{

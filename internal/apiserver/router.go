@@ -37,32 +37,33 @@ func installController(g *gin.Engine) *gin.Engine {
 	// Refresh time can be longer than token timeout
 	g.POST("/refresh", jwtStrategy.RefreshHandler) // 刷新路由
 
+	// auto 策略: 该策略会根据 HTTP 头Authorization: Basic XX.YY.ZZ和Authorization: Bearer XX.YY.ZZ自动选择使用 Basic 认证还是 Bearer 认证。
 	auto := newAutoAuth()
 	g.NoRoute(auto.AuthFunc(), func(c *gin.Context) { // 路由不存在时的处理函数
 		core.WriteResponse(c, errors.WithCode(code.ErrPageNotFound, "Page not found."), nil)
 	})
 
 	// v1 handlers, requiring authentication
-	storeIns, _ := mysql.GetMySQLFactoryOr(nil)
+	storeIns, _ := mysql.GetMySQLFactoryOr(nil) // 获取存储实例
 	v1 := g.Group("/v1")
 	{
 		// user RESTful resource
 		userv1 := v1.Group("/users")
 		{
-			userController := user.NewUserController(storeIns)
+			userController := user.NewUserController(storeIns) // 控制层，用户处理器
 
-			userv1.POST("", userController.Create)
+			userv1.POST("", userController.Create) // 创建用户
 			userv1.Use(auto.AuthFunc(), middleware.Validation())
 			// v1.PUT("/find_password", userController.FindPassword)
-			userv1.DELETE("", userController.DeleteCollection) // admin api
-			userv1.DELETE(":name", userController.Delete)      // admin api
-			userv1.PUT(":name/change-password", userController.ChangePassword)
-			userv1.PUT(":name", userController.Update)
-			userv1.GET("", userController.List)
-			userv1.GET(":name", userController.Get) // admin api
+			userv1.DELETE("", userController.DeleteCollection)                 // admin api，删除用户集合
+			userv1.DELETE(":name", userController.Delete)                      // admin api，删除单个用户
+			userv1.PUT(":name/change-password", userController.ChangePassword) // 修改用户
+			userv1.PUT(":name", userController.Update)                         // 更新用户信息
+			userv1.GET("", userController.List)                                // 列出用户信息
+			userv1.GET(":name", userController.Get)                            // admin api，获取用户信息
 		}
 
-		v1.Use(auto.AuthFunc())
+		v1.Use(auto.AuthFunc()) // 添加认证中间件
 
 		// policy RESTful resource
 		policyv1 := v1.Group("/policies", middleware.Publish())

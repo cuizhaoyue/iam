@@ -19,6 +19,7 @@ const authHeaderCount = 2
 
 // AutoStrategy defines authentication strategy which can automatically choose between Basic and Bearer
 // according `Authorization` header.
+// 定义了jwt和basic两种认证策略，根据请求头自动选择合适的认证策略
 type AutoStrategy struct {
 	basic middleware.AuthStrategy
 	jwt   middleware.AuthStrategy
@@ -35,6 +36,7 @@ func NewAutoStrategy(basic, jwt middleware.AuthStrategy) AutoStrategy {
 }
 
 // AuthFunc defines auto strategy as the gin authentication middleware.
+// 定义作为gin认证中间件的自动认证策略
 func (a AutoStrategy) AuthFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		operator := middleware.AuthOperator{}

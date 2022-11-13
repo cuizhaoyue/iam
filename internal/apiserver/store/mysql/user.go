@@ -66,7 +66,7 @@ func (u *users) DeleteCollection(ctx context.Context, usernames []string, opts m
 	}
 
 	if opts.Unscoped {
-		u.db = u.db.Unscoped()
+		u.db = u.db.Unscoped() // 永久删除
 	}
 
 	return u.db.Where("name in (?)", usernames).Delete(&v1.User{}).Error
