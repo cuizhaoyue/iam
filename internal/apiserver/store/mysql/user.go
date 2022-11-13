@@ -17,15 +17,17 @@ import (
 	"github.com/marmotedu/iam/internal/pkg/util/gormutil"
 )
 
+// 用户对象
 type users struct {
 	db *gorm.DB
 }
 
+// 新建一个用户对象
 func newUsers(ds *datastore) *users {
 	return &users{ds.db}
 }
 
-// Create creates a new user account.
+// Create creates a new user account. 创建一个新的用户账号
 func (u *users) Create(ctx context.Context, user *v1.User, opts metav1.CreateOptions) error {
 	return u.db.Create(&user).Error
 }

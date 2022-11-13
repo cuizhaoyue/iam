@@ -22,8 +22,8 @@ import (
 )
 
 func initRouter(g *gin.Engine) {
-	installMiddleware(g)
-	installController(g)
+	installMiddleware(g) // 安装中间件
+	installController(g) // 安装控制器
 }
 
 func installMiddleware(g *gin.Engine) {
@@ -31,14 +31,14 @@ func installMiddleware(g *gin.Engine) {
 
 func installController(g *gin.Engine) *gin.Engine {
 	// Middlewares.
-	jwtStrategy, _ := newJWTAuth().(auth.JWTStrategy)
-	g.POST("/login", jwtStrategy.LoginHandler)
-	g.POST("/logout", jwtStrategy.LogoutHandler)
+	jwtStrategy, _ := newJWTAuth().(auth.JWTStrategy) // 创建jwt认证策略
+	g.POST("/login", jwtStrategy.LoginHandler)        // 登录路由
+	g.POST("/logout", jwtStrategy.LogoutHandler)      // 登出路由
 	// Refresh time can be longer than token timeout
-	g.POST("/refresh", jwtStrategy.RefreshHandler)
+	g.POST("/refresh", jwtStrategy.RefreshHandler) // 刷新路由
 
 	auto := newAutoAuth()
-	g.NoRoute(auto.AuthFunc(), func(c *gin.Context) {
+	g.NoRoute(auto.AuthFunc(), func(c *gin.Context) { // 路由不存在时的处理函数
 		core.WriteResponse(c, errors.WithCode(code.ErrPageNotFound, "Page not found."), nil)
 	})
 

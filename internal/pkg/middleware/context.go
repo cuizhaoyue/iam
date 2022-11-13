@@ -11,6 +11,7 @@ import (
 )
 
 // UsernameKey defines the key in gin context which represents the owner of the secret.
+// 定义在gin context中表示secret所有者的key
 const UsernameKey = "username"
 
 // Context is a middleware that injects common prefix fields to gin.Context.

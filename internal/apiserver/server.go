@@ -80,12 +80,13 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 	return server, nil
 }
 
+// PrepareRun 应用初始化
 func (s *apiServer) PrepareRun() preparedAPIServer {
-	initRouter(s.genericAPIServer.Engine)
+	initRouter(s.genericAPIServer.Engine) // 初始化API路由
 
-	s.initRedisStore()
+	s.initRedisStore() // Redis初始化
 
-	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error {
+	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error { // 添加停止时的调用函数
 		mysqlStore, _ := mysql.GetMySQLFactoryOr(nil)
 		if mysqlStore != nil {
 			_ = mysqlStore.Close()
@@ -135,10 +136,10 @@ func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
 	opts := []grpc.ServerOption{grpc.MaxRecvMsgSize(c.MaxMsgSize), grpc.Creds(creds)}
 	grpcServer := grpc.NewServer(opts...)
 
-	storeIns, _ := mysql.GetMySQLFactoryOr(c.mysqlOptions)
+	storeIns, _ := mysql.GetMySQLFactoryOr(c.mysqlOptions) // 根据mysql options创建存储工厂实例
 	// storeIns, _ := etcd.GetEtcdFactoryOr(c.etcdOptions, nil)
 	store.SetClient(storeIns)
-	cacheIns, err := cachev1.GetCacheInsOr(storeIns)
+	cacheIns, err := cachev1.GetCacheInsOr(storeIns) // 获取缓存服务
 	if err != nil {
 		log.Fatalf("Failed to get cache instance: %s", err.Error())
 	}

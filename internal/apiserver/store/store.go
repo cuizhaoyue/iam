@@ -18,12 +18,12 @@ type Factory interface {
 	Close() error
 }
 
-// Client return the store client instance.
+// Client return the store client instance. 返回工厂实例
 func Client() Factory {
 	return client
 }
 
-// SetClient set the iam store client.
+// SetClient set the iam store client. 设置工厂实例
 func SetClient(factory Factory) {
 	client = factory
 }

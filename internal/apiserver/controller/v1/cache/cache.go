@@ -20,6 +20,7 @@ import (
 )
 
 // Cache defines a cache service used to list all secrets and policies.
+// 定义一个缓存服务用来列出所有的secret和policy
 type Cache struct {
 	store store.Factory
 }

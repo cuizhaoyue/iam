@@ -26,22 +26,27 @@ type datastore struct {
 	// db *gorm.DB
 }
 
+// Users 返回用户接口
 func (ds *datastore) Users() store.UserStore {
 	return newUsers(ds)
 }
 
+// Secrets 返回secret接口
 func (ds *datastore) Secrets() store.SecretStore {
 	return newSecrets(ds)
 }
 
+// Policies 返回Policy接口
 func (ds *datastore) Policies() store.PolicyStore {
 	return newPolicies(ds)
 }
 
+// PolicyAudits 返回PolicyAudits接口
 func (ds *datastore) PolicyAudits() store.PolicyAuditStore {
 	return newPolicyAudits(ds)
 }
 
+// Close 关闭数据库连接池
 func (ds *datastore) Close() error {
 	db, err := ds.db.DB()
 	if err != nil {
@@ -65,7 +70,7 @@ func GetMySQLFactoryOr(opts *genericoptions.MySQLOptions) (store.Factory, error)
 
 	var err error
 	var dbIns *gorm.DB
-	once.Do(func() {
+	once.Do(func() { // 单例模式，创建数据库连接池
 		options := &db.Options{
 			Host:                  opts.Host,
 			Username:              opts.Username,

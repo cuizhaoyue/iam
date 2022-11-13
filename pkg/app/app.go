@@ -247,18 +247,19 @@ func (a *App) Command() *cobra.Command {
 
 // runCommand 运行app的Command命令
 func (a *App) runCommand(cmd *cobra.Command, args []string) error {
-	printWorkingDir()
-	cliflag.PrintFlags(cmd.Flags())
-	if !a.noVersion {
+	printWorkingDir()               // 打印工作目录
+	cliflag.PrintFlags(cmd.Flags()) // 打印FlagSet中的所有Flag
+	if !a.noVersion {               // 打印版本信息
 		// display application version information
 		verflag.PrintAndExitIfRequested()
 	}
 
 	if !a.noConfig {
+		// 把FlagSet中的所有Flag绑定到配置中，每个Flag的long名称作为配置的key
 		if err := viper.BindPFlags(cmd.Flags()); err != nil {
 			return err
 		}
-
+		// 把配置反序列化到options中
 		if err := viper.Unmarshal(a.options); err != nil {
 			return err
 		}
