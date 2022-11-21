@@ -66,6 +66,7 @@ func createAuthzServer(cfg *config.Config) (*authzServer, error) {
 	return server, nil
 }
 
+// PrepareRun 应用初始化
 func (s *authzServer) PrepareRun() preparedAuthzServer {
 	_ = s.initialize()
 
@@ -74,7 +75,7 @@ func (s *authzServer) PrepareRun() preparedAuthzServer {
 	return preparedAuthzServer{s}
 }
 
-// Run start to run AuthzServer.
+// Run start to run AuthzServer. 运行服务
 func (s preparedAuthzServer) Run() error {
 	stopCh := make(chan struct{})
 
@@ -125,6 +126,7 @@ func buildGenericConfig(cfg *config.Config) (genericConfig *genericapiserver.Con
 	return
 }
 
+// 构建redis的配置
 func (s *authzServer) buildStorageConfig() *storage.Config {
 	return &storage.Config{
 		Host:                  s.redisOptions.Host,
@@ -147,18 +149,19 @@ func (s *authzServer) initialize() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	s.redisCancelFunc = cancel
 
-	// keep redis connected
+	// keep redis connected 保持和redis的连接状，断开会重新连接
 	go storage.ConnectToRedis(ctx, s.buildStorageConfig())
 
-	// cron to reload all secrets and policies from iam-apiserver
+	// cron to reload all secrets and policies from iam-apiserver 定时从iam-apiserver中同步secret和policy过来
 	cacheIns, err := cache.GetCacheInsOr(apiserver.GetAPIServerFactoryOrDie(s.rpcServer, s.clientCA))
 	if err != nil {
 		return errors.Wrap(err, "get cache instance failed")
 	}
 
+	// load包完成密钥和策略的缓存
 	load.NewLoader(ctx, cacheIns).Start()
 
-	// start analytics service
+	// start analytics service 开户analytics服务
 	if s.analyticsOptions.Enable {
 		analyticsStore := storage.RedisCluster{KeyPrefix: RedisKeyPrefix}
 		analyticsIns := analytics.NewAnalytics(s.analyticsOptions, &analyticsStore)

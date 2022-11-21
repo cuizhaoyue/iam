@@ -16,6 +16,7 @@ import (
 )
 
 // Cache is used to store secrets and policies.
+// 用来保存secret和policy
 type Cache struct {
 	lock     *sync.RWMutex
 	cli      store.Factory
@@ -32,10 +33,10 @@ var (
 
 var (
 	onceCache sync.Once
-	cacheIns  *Cache
+	cacheIns  *Cache // Cache实现了Reload接口，用于重新加载secret和policy
 )
 
-// GetCacheInsOr return store instance.
+// GetCacheInsOr return store instance. 返回存储实例
 func GetCacheInsOr(cli store.Factory) (*Cache, error) {
 	var err error
 	if cli != nil {
@@ -45,18 +46,18 @@ func GetCacheInsOr(cli store.Factory) (*Cache, error) {
 		)
 
 		onceCache.Do(func() {
-			c := &ristretto.Config{
+			c := &ristretto.Config{ // 缓存配置
 				NumCounters: 1e7,     // number of keys to track frequency of (10M).
 				MaxCost:     1 << 30, // maximum cost of cache (1GB).
 				BufferItems: 64,      // number of keys per Get buffer.
 				Cost:        nil,
 			}
 
-			secretCache, err = ristretto.NewCache(c)
+			secretCache, err = ristretto.NewCache(c) // 创建secret缓存
 			if err != nil {
 				return
 			}
-			policyCache, err = ristretto.NewCache(c)
+			policyCache, err = ristretto.NewCache(c) // 创建policy缓存
 			if err != nil {
 				return
 			}
@@ -74,8 +75,9 @@ func GetCacheInsOr(cli store.Factory) (*Cache, error) {
 }
 
 // GetSecret return secret detail for the given key.
+// 返回secret的详细信息
 func (c *Cache) GetSecret(key string) (*pb.SecretInfo, error) {
-	c.lock.Lock()
+	c.lock.Lock() // 获取数据前加锁，不允许再写
 	defer c.lock.Unlock()
 
 	value, ok := c.secrets.Get(key)
@@ -87,6 +89,7 @@ func (c *Cache) GetSecret(key string) (*pb.SecretInfo, error) {
 }
 
 // GetPolicy return user's ladon policies for the given user.
+// 返回policy的详细信息
 func (c *Cache) GetPolicy(key string) ([]*ladon.DefaultPolicy, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
@@ -100,8 +103,9 @@ func (c *Cache) GetPolicy(key string) ([]*ladon.DefaultPolicy, error) {
 }
 
 // Reload reload secrets and policies.
+// 重新加载secret和policy数据
 func (c *Cache) Reload() error {
-	c.lock.Lock()
+	c.lock.Lock() // 同步数据前加锁，保持数据一致
 	defer c.lock.Unlock()
 
 	// reload secrets

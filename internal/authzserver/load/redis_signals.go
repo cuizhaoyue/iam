@@ -18,6 +18,7 @@ import (
 )
 
 // NotificationCommand defines a new notification type.
+// 定义一个新的通知类型.
 type NotificationCommand string
 
 // Define Redis pub/sub events.
@@ -28,6 +29,7 @@ const (
 )
 
 // Notification is a type that encodes a message published to a pub sub channel (shared between implementations).
+// Notification 是一个编码了发布到通道中的信息的类型
 type Notification struct {
 	Command       NotificationCommand `json:"command"`
 	Payload       string              `json:"payload"`
@@ -42,12 +44,14 @@ func (n *Notification) Sign() {
 	n.Signature = hex.EncodeToString(hash[:])
 }
 
+// 处理redis订阅事件，将消息转换成Notification类型的消息并判断Command的值
 func handleRedisEvent(v interface{}, handled func(NotificationCommand), reloaded func()) {
-	message, ok := v.(*redis.Message)
+	message, ok := v.(*redis.Message) // 转换成Message对象
 	if !ok {
 		return
 	}
 
+	// 将消息转换成Notification类型的消息
 	notif := Notification{}
 	if err := json.Unmarshal([]byte(message.Payload), &notif); err != nil {
 		log.Errorf("Unmarshalling message body failed, malformed: ", err)
@@ -55,11 +59,11 @@ func handleRedisEvent(v interface{}, handled func(NotificationCommand), reloaded
 		return
 	}
 	log.Infow("receive redis message", "command", notif.Command, "payload", message.Payload)
-
+	// 判断消息中Command的值
 	switch notif.Command {
 	case NoticePolicyChanged, NoticeSecretChanged:
 		log.Info("Reloading secrets and policies")
-		reloadQueue <- reloaded
+		reloadQueue <- reloaded // 不需要回调函数reloaded做任何事，这里为nil，reloadQueue 主要用来告诉程序，需要完成一次密钥和策略的同步。
 	default:
 		log.Warnf("Unknown notification command: %q", notif.Command)
 

@@ -205,7 +205,7 @@ func (a *App) buildCommand() {
 		}
 		cmd.SetHelpCommand(helpCommand(FormatBaseName(a.basename))) // 设置help信息的Command
 	}
-	if a.runFunc != nil { // 设置运行函数
+	if a.runFunc != nil { // 设置运行函数，设置RunE的步骤可以放在return前更容易理解
 		cmd.RunE = a.runCommand
 	}
 
@@ -221,7 +221,7 @@ func (a *App) buildCommand() {
 	if !a.noVersion { // 添加version相关的Flag到global FlagSet中
 		verflag.AddFlags(namedFlagSets.FlagSet("global"))
 	}
-	if !a.noConfig { // 添加config相关的Flag到global FlagSet中
+	if !a.noConfig { // 从配置文件中读取配置，添加config相关的Flag到global FlagSet中
 		addConfigFlag(a.basename, namedFlagSets.FlagSet("global"))
 	}
 	globalflag.AddGlobalFlags(namedFlagSets.FlagSet("global"), cmd.Name())
