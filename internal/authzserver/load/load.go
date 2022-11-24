@@ -40,11 +40,11 @@ func NewLoader(ctx context.Context, loader Loader) *Load {
 // Start start a loop service.
 func (l *Load) Start() {
 	go startPubSubLoop()   // 订阅redis通道，注册回调函数判断是否需要同步密钥和策略
-	go l.reloadQueueLoop() // 有新消息后
+	go l.reloadQueueLoop() // 有新消息后，把新消息添加到requeue中
 	// 1s is the minimum amount of time between hot reloads. The
 	// interval counts from the start of one reload to the next.
-	go l.reloadLoop()
-	l.DoReload()
+	go l.reloadLoop() // 每隔1秒检查一次requeue是否为空，不为空则重新加载密钥和策略
+	l.DoReload()      // 完成一次密钥和策略的同步
 }
 
 // 协程，订阅redis通道，注册回调函数，判断是否需要同步密钥和策略
@@ -93,12 +93,12 @@ func (l *Load) reloadLoop(complete ...func()) {
 		// startup sequence. We expect to start checking on the first tick after the
 		// gateway is up and running.
 		case <-ticker.C:
-			cb, ok := shouldReload()
+			cb, ok := shouldReload() // 检查requeue是否为空
 			if !ok {
 				continue
 			}
 			start := time.Now()
-			l.DoReload() // 同步密钥和策略
+			l.DoReload() // requeue不为空时同步密钥和策略
 			for _, c := range cb {
 				// most of the callbacks are nil, we don't want to execute nil functions to
 				// avoid panics.

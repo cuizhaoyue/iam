@@ -161,9 +161,9 @@ func (s *authzServer) initialize() error {
 	// load包完成密钥和策略的缓存
 	load.NewLoader(ctx, cacheIns).Start()
 
-	// start analytics service 开户analytics服务
+	// start analytics service 开启analytics服务
 	if s.analyticsOptions.Enable {
-		analyticsStore := storage.RedisCluster{KeyPrefix: RedisKeyPrefix}
+		analyticsStore := storage.RedisCluster{KeyPrefix: RedisKeyPrefix} // analytics服务使用的redis存储实例
 		analyticsIns := analytics.NewAnalytics(s.analyticsOptions, &analyticsStore)
 		analyticsIns.Start()
 	}

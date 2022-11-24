@@ -61,6 +61,7 @@ type Analytics struct {
 }
 
 // NewAnalytics returns a new analytics instance.
+// 创建一个Analytics实例
 func NewAnalytics(options *AnalyticsOptions, store storage.AnalyticsHandler) *Analytics {
 	ps := options.PoolSize
 	recordsBufferSize := options.RecordsBufferSize
