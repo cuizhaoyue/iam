@@ -18,6 +18,7 @@ import (
 )
 
 // PolicyGetter defines function to get policy for a given user.
+// 定义了从一个用户名中获取策略的函数
 type PolicyGetter interface {
 	GetPolicy(key string) ([]*ladon.DefaultPolicy, error)
 }

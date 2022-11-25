@@ -17,8 +17,9 @@ import (
 )
 
 // AuthzController create a authorize handler used to handle authorize request.
+// 创建一个授权处理handler处理授权请求
 type AuthzController struct {
-	store authorizer.PolicyGetter
+	store authorizer.PolicyGetter // authorizer属于服务层
 }
 
 // NewAuthzController creates a authorize handler.
@@ -38,6 +39,7 @@ func (a *AuthzController) Authorize(c *gin.Context) {
 		return
 	}
 
+	// 创建并返回包含 Manager 和 AuditLogger 字段的Authorizer类型的变量。
 	auth := authorization.NewAuthorizer(authorizer.NewAuthorization(a.store))
 	if r.Context == nil {
 		r.Context = ladon.Context{}

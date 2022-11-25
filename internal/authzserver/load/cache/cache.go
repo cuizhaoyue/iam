@@ -36,7 +36,7 @@ var (
 	cacheIns  *Cache // Cache实现了Reload接口，用于重新加载secret和policy
 )
 
-// GetCacheInsOr return store instance. 返回存储实例
+// GetCacheInsOr return store instance. 返回缓存实例
 func GetCacheInsOr(cli store.Factory) (*Cache, error) {
 	var err error
 	if cli != nil {

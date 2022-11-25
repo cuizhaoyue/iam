@@ -29,16 +29,16 @@ func installController(g *gin.Engine) *gin.Engine {
 		core.WriteResponse(c, errors.WithCode(code.ErrPageNotFound, "page not found."), nil)
 	})
 
-	cacheIns, _ := cache.GetCacheInsOr(nil)
+	cacheIns, _ := cache.GetCacheInsOr(nil) // 缓存实例
 	if cacheIns == nil {
 		log.Panicf("get nil cache instance")
 	}
 
-	apiv1 := g.Group("/v1", auth.AuthFunc())
+	apiv1 := g.Group("/v1", auth.AuthFunc()) // 分组，添加一个认证中间件
 	{
 		authzController := authorize.NewAuthzController(cacheIns)
 
-		// Router for authorization
+		// Router for authorization /v1/authz
 		apiv1.POST("/authz", authzController.Authorize)
 	}
 

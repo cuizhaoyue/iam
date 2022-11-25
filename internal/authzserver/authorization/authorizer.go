@@ -13,11 +13,13 @@ import (
 
 // Authorizer implement the authorize interface that use local repository to
 // authorize the subject access review.
+// Authorizer 实现了authorize接口，它使用本地仓库授权主题的访问.
 type Authorizer struct {
 	warden ladon.Warden
 }
 
 // NewAuthorizer creates a local repository authorizer and returns it.
+// 创建一个本地仓库授权者然后返回它.
 func NewAuthorizer(authorizationClient AuthorizationInterface) *Authorizer {
 	return &Authorizer{
 		warden: &ladon.Ladon{
@@ -28,6 +30,7 @@ func NewAuthorizer(authorizationClient AuthorizationInterface) *Authorizer {
 }
 
 // Authorize to determine the subject access.
+// 确认主题的访问权限
 func (a *Authorizer) Authorize(request *ladon.Request) *authzv1.Response {
 	log.Debug("authorize request", log.Any("request", request))
 

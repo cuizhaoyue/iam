@@ -15,6 +15,7 @@ import (
 )
 
 // Loader defines function to reload storage.
+// 定义了重新加载存储的功能
 type Loader interface {
 	Reload() error
 }

@@ -40,6 +40,7 @@ type CacheStrategy struct {
 var _ middleware.AuthStrategy = &CacheStrategy{}
 
 // NewCacheStrategy create cache strategy with function which can list and cache secrets.
+// 创建缓存策略
 func NewCacheStrategy(get func(kid string) (Secret, error)) CacheStrategy {
 	return CacheStrategy{get}
 }
