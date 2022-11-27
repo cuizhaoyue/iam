@@ -17,6 +17,7 @@ type PolicyManager struct {
 
 // NewPolicyManager initializes a new PolicyManager for given apimachinery api
 // client.
+// 创建一个策略管理器实例
 func NewPolicyManager(client AuthorizationInterface) ladon.Manager {
 	return &PolicyManager{
 		client: client,
@@ -51,6 +52,7 @@ func (*PolicyManager) GetAll(limit, offset int64) (ladon.Policies, error) {
 // FindRequestCandidates returns candidates that could match the request object. It either returns
 // a set that exactly matches the request, or a superset of it. If an error occurs, it returns nil and
 // the error.
+// FindRequestCandidates 查询请求用户的policy列表
 func (m *PolicyManager) FindRequestCandidates(r *ladon.Request) (ladon.Policies, error) {
 	username := ""
 
@@ -58,7 +60,7 @@ func (m *PolicyManager) FindRequestCandidates(r *ladon.Request) (ladon.Policies,
 		username = user
 	}
 
-	policies, err := m.client.List(username)
+	policies, err := m.client.List(username) // 查询指定用户的policy列表
 	if err != nil {
 		return nil, errors.Wrap(err, "list policies failed")
 	}

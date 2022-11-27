@@ -85,10 +85,11 @@ func (s preparedAuthzServer) Run() error {
 	}
 
 	//nolint: errcheck
-	go s.genericAPIServer.Run()
+	go s.genericAPIServer.Run() // 启动http服务
 
 	// in order to ensure that the reported data is not lost,
 	// please ensure the following graceful shutdown sequence
+	// 为了保证数据不丢失，要保证下面的优雅关闭服务的顺序.
 	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error {
 		s.genericAPIServer.Close()
 		if s.analyticsOptions.Enable {
@@ -152,7 +153,8 @@ func (s *authzServer) initialize() error {
 	// keep redis connected 保持和redis的连接状，断开会重新连接
 	go storage.ConnectToRedis(ctx, s.buildStorageConfig())
 
-	// cron to reload all secrets and policies from iam-apiserver 定时从iam-apiserver中同步secret和policy过来
+	// cron to reload all secrets and policies from iam-apiserver
+	// 创建缓存实例，定时从iam-apiserver中同步secret和policy过来
 	cacheIns, err := cache.GetCacheInsOr(apiserver.GetAPIServerFactoryOrDie(s.rpcServer, s.clientCA))
 	if err != nil {
 		return errors.Wrap(err, "get cache instance failed")

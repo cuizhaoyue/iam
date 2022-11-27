@@ -103,28 +103,32 @@ func (c *Cache) GetPolicy(key string) ([]*ladon.DefaultPolicy, error) {
 }
 
 // Reload reload secrets and policies.
-// 重新加载secret和policy数据
+// 把secret和policy数据加载到缓存中
 func (c *Cache) Reload() error {
 	c.lock.Lock() // 同步数据前加锁，保持数据一致
 	defer c.lock.Unlock()
 
 	// reload secrets
+	// 从iam-apiserver服务中获取secret列表
 	secrets, err := c.cli.Secrets().List()
 	if err != nil {
 		return errors.Wrap(err, "list secrets failed")
 	}
 
+	// 清除缓存中的所有secret数据，然后把获取的数据保存到缓存中
 	c.secrets.Clear()
 	for key, val := range secrets {
 		c.secrets.Set(key, val, 1)
 	}
 
 	// reload policies
+	// 从iam-apiserver服务中获取policy列表
 	policies, err := c.cli.Policies().List()
 	if err != nil {
 		return errors.Wrap(err, "list policies failed")
 	}
 
+	// 清除缓存中的所有policy数据，然后把获取的数据保存到缓存中
 	c.policies.Clear()
 	for key, val := range policies {
 		c.policies.Set(key, val, 1)

@@ -37,9 +37,10 @@ type AnalyticsRecord struct {
 var analytics *Analytics
 
 // SetExpiry set expiration time to a key.
+// 设置到期时间
 func (a *AnalyticsRecord) SetExpiry(expiresInSeconds int64) {
 	expiry := time.Duration(expiresInSeconds) * time.Second
-	if expiresInSeconds == 0 {
+	if expiresInSeconds == 0 { // 如果传入0则设置100年过期时间
 		// Expiry is set to 100 years
 		expiry = 24 * 365 * 100 * time.Hour
 	}
@@ -50,6 +51,7 @@ func (a *AnalyticsRecord) SetExpiry(expiresInSeconds int64) {
 }
 
 // Analytics will record analytics data to a redis back end as defined in the Config object.
+// 把分析数据按照Config对象中的定义记录到redis后端
 type Analytics struct {
 	store                      storage.AnalyticsHandler
 	poolSize                   int
@@ -112,14 +114,17 @@ func (r *Analytics) Stop() {
 }
 
 // RecordHit will store an AnalyticsRecord in Redis.
+// 保存AnalyticsRecord到Redis中.
 func (r *Analytics) RecordHit(record *AnalyticsRecord) error {
 	// check if we should stop sending records 1st
+	// 首先检查我们是否应该停止发送记录
 	if atomic.LoadUint32(&r.shouldStop) > 0 {
 		return nil
 	}
 
 	// just send record to channel consumed by pool of workers
 	// leave all data crunching and Redis I/O work for pool workers
+	// 发送记录到通道到工作线程池消费的通道
 	r.recordsChan <- record
 
 	return nil

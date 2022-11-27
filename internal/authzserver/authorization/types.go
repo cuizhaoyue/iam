@@ -11,6 +11,7 @@ import (
 )
 
 // AuthorizationInterface defiens the CURD method for lady policy.
+// 为lady policy定义CRUD方法
 type AuthorizationInterface interface {
 	Create(*ladon.DefaultPolicy) error
 	Update(*ladon.DefaultPolicy) error
