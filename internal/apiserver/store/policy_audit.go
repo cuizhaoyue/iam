@@ -9,6 +9,7 @@ import (
 )
 
 // PolicyAuditStore defines the policy_audit storage interface.
+// 定义policy_audit存储接口
 type PolicyAuditStore interface {
 	ClearOutdated(ctx context.Context, maxReserveDays int) (int64, error)
 }

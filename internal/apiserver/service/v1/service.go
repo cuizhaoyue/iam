@@ -9,14 +9,15 @@ package v1
 import "github.com/marmotedu/iam/internal/apiserver/store"
 
 // Service defines functions used to return resource interface.
-// 定义返回资源接口的功能
+// 业务层/服务层总接口，定义了处理各个资源请求的服务的方法
 type Service interface {
 	Users() UserSrv
 	Secrets() SecretSrv
 	Policies() PolicySrv
 }
 
-// 整体服务实例
+// 服务层接口实例，成员类型为仓库层的mysql工厂类型，用于调用仓库层操作数据，服务实例实现了服务接口中的所有请求处理服务
+// 服务实例作为方法接收者，会作为参数传给方法中调用的函数，创建对应资源的服务实例.
 type service struct {
 	store store.Factory
 }

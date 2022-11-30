@@ -68,6 +68,7 @@ func createAuthzServer(cfg *config.Config) (*authzServer, error) {
 
 // PrepareRun 应用初始化
 func (s *authzServer) PrepareRun() preparedAuthzServer {
+	// 初始化，包括保持redis连接、创建缓存实例、启动密钥和策略的同步工作、开启analytics服务
 	_ = s.initialize()
 
 	initRouter(s.genericAPIServer.Engine)
@@ -165,9 +166,9 @@ func (s *authzServer) initialize() error {
 
 	// start analytics service 开启analytics服务
 	if s.analyticsOptions.Enable {
-		analyticsStore := storage.RedisCluster{KeyPrefix: RedisKeyPrefix} // analytics服务使用的redis存储实例
-		analyticsIns := analytics.NewAnalytics(s.analyticsOptions, &analyticsStore)
-		analyticsIns.Start()
+		analyticsStore := storage.RedisCluster{KeyPrefix: RedisKeyPrefix}           // analytics服务使用的redis存储实例
+		analyticsIns := analytics.NewAnalytics(s.analyticsOptions, &analyticsStore) // 创建analytics实例
+		analyticsIns.Start()                                                        // 启动analytics服务
 	}
 
 	return nil

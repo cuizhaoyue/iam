@@ -23,17 +23,19 @@ const (
 )
 
 // AnalyticsRecord encodes the details of a authorization request.
+// AnalyticsRecord 编码授权请求的详细信息.
 type AnalyticsRecord struct {
-	TimeStamp  int64     `json:"timestamp"`
-	Username   string    `json:"username"`
-	Effect     string    `json:"effect"`
-	Conclusion string    `json:"conclusion"`
-	Request    string    `json:"request"`
-	Policies   string    `json:"policies"`
-	Deciders   string    `json:"deciders"`
-	ExpireAt   time.Time `json:"expireAt"   bson:"expireAt"`
+	TimeStamp  int64     `json:"timestamp"`                  // 时间戳
+	Username   string    `json:"username"`                   // 授权请求中的用户名
+	Effect     string    `json:"effect"`                     // 允许或拒绝 allow or deny
+	Conclusion string    `json:"conclusion"`                 // 结论
+	Request    string    `json:"request"`                    // 请求
+	Policies   string    `json:"policies"`                   // 策略
+	Deciders   string    `json:"deciders"`                   //
+	ExpireAt   time.Time `json:"expireAt"   bson:"expireAt"` // 到期时间
 }
 
+// 全局变量，分析服务的配置
 var analytics *Analytics
 
 // SetExpiry set expiration time to a key.
@@ -53,13 +55,13 @@ func (a *AnalyticsRecord) SetExpiry(expiresInSeconds int64) {
 // Analytics will record analytics data to a redis back end as defined in the Config object.
 // 把分析数据按照Config对象中的定义记录到redis后端
 type Analytics struct {
-	store                      storage.AnalyticsHandler
-	poolSize                   int
-	recordsChan                chan *AnalyticsRecord
-	workerBufferSize           uint64
-	recordsBufferFlushInterval uint64
-	shouldStop                 uint32
-	poolWg                     sync.WaitGroup
+	store                      storage.AnalyticsHandler // analytics处理器
+	poolSize                   int                      // 线程池大小，表示worker个数
+	recordsChan                chan *AnalyticsRecord    // 记录数据的通道
+	workerBufferSize           uint64                   // 数据缓冲区大小
+	recordsBufferFlushInterval uint64                   // 数据记录时间间隔
+	shouldStop                 uint32                   // 是否应该停止发送数据，大于0时停止
+	poolWg                     sync.WaitGroup           // 管理线程池的WaitGroup
 }
 
 // NewAnalytics returns a new analytics instance.
@@ -70,6 +72,7 @@ func NewAnalytics(options *AnalyticsOptions, store storage.AnalyticsHandler) *An
 	workerBufferSize := recordsBufferSize / uint64(ps)
 	log.Debug("Analytics pool worker buffer size", log.Uint64("workerBufferSize", workerBufferSize))
 
+	// 通过RecordHit函数，向recordsChan 中写入 AnalyticsRecord 类型的数据
 	recordsChan := make(chan *AnalyticsRecord, recordsBufferSize)
 
 	analytics = &Analytics{
@@ -94,7 +97,8 @@ func (r *Analytics) Start() {
 	r.store.Connect()
 
 	// start worker pool
-	atomic.SwapUint32(&r.shouldStop, 0)
+	// 启动工作池
+	atomic.SwapUint32(&r.shouldStop, 0) // 保存新的值，返回旧的值
 	for i := 0; i < r.poolSize; i++ {
 		r.poolWg.Add(1)
 		go r.recordWorker()
@@ -114,7 +118,7 @@ func (r *Analytics) Stop() {
 }
 
 // RecordHit will store an AnalyticsRecord in Redis.
-// 保存AnalyticsRecord到Redis中.
+// 将授权日志转换成AnalyticsRecord对象保存到Redis中.
 func (r *Analytics) RecordHit(record *AnalyticsRecord) error {
 	// check if we should stop sending records 1st
 	// 首先检查我们是否应该停止发送记录
@@ -130,22 +134,26 @@ func (r *Analytics) RecordHit(record *AnalyticsRecord) error {
 	return nil
 }
 
+// 用于记录数据的线程
 func (r *Analytics) recordWorker() {
-	defer r.poolWg.Done()
+	defer r.poolWg.Done() // 退出时goroutine计数减1
 
 	// this is buffer to send one pipelined command to redis
 	// use r.recordsBufferSize as cap to reduce slice re-allocations
-	recordsBuffer := make([][]byte, 0, r.workerBufferSize)
+	recordsBuffer := make([][]byte, 0, r.workerBufferSize) // 设置缓存大小
 
 	// read records from channel and process
-	lastSentTS := time.Now()
+	// 从通道和程序中读取记录数据.
+	lastSentTS := time.Now() // 最后发送数据的时间
 	for {
-		var readyToSend bool
+		var readyToSend bool // 是否准备好发送数据
 		select {
 		case record, ok := <-r.recordsChan:
 			// check if channel was closed and it is time to exit from worker
+			// 检查通道是否关闭，如果关闭则退出worker线程
 			if !ok {
 				// send what is left in buffer
+				// 发送buffer中留下的数据后退出
 				r.store.AppendToSetPipelined(analyticsKeyName, recordsBuffer)
 
 				return
@@ -153,6 +161,7 @@ func (r *Analytics) recordWorker() {
 
 			// we have new record - prepare it and add to buffer
 
+			// 通道中已经有记录数据了就添加到buffer中
 			if encoded, err := msgpack.Marshal(record); err != nil {
 				log.Errorf("Error encoding analytics data: %s", err.Error())
 			} else {
@@ -163,16 +172,19 @@ func (r *Analytics) recordWorker() {
 			readyToSend = uint64(len(recordsBuffer)) == r.workerBufferSize
 
 		case <-time.After(time.Duration(r.recordsBufferFlushInterval) * time.Millisecond):
+			// 间隔时间到了以后就可以发送buffer中的数据了.
+
 			// nothing was received for that period of time
 			// anyways send whatever we have, don't hold data too long in buffer
 			readyToSend = true
 		}
 
 		// send data to Redis and reset buffer
+		// 发送数据到redis并且重置buffer
 		if len(recordsBuffer) > 0 && (readyToSend || time.Since(lastSentTS) >= recordsBufferForcedFlushInterval) {
-			r.store.AppendToSetPipelined(analyticsKeyName, recordsBuffer)
-			recordsBuffer = recordsBuffer[:0]
-			lastSentTS = time.Now()
+			r.store.AppendToSetPipelined(analyticsKeyName, recordsBuffer) // 发送数据到redis
+			recordsBuffer = recordsBuffer[:0]                             // 清空buffer
+			lastSentTS = time.Now()                                       // 重置时间
 		}
 	}
 }

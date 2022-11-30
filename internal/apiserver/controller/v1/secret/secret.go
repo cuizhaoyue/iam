@@ -10,6 +10,7 @@ import (
 )
 
 // SecretController create a secret handler used to handle request for secret resource.
+// secret控制器实例
 type SecretController struct {
 	srv srvv1.Service
 }

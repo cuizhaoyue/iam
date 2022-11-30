@@ -363,6 +363,7 @@ func (o *RedisOpts) failover() *redis.FailoverOptions {
 }
 
 // Connect will establish a connection this is always true because we are dynamically using redis.
+// Connect 将会建立一个连接，这个方法问题返回true，因为我们动态地使用redis.
 func (r *RedisCluster) Connect() bool {
 	return true
 }
@@ -930,8 +931,9 @@ func (r *RedisCluster) StartPubSubHandler(channel string, callback func(interfac
 }
 
 // Publish publish a message to the specify channel.
+// 发布一条信息到指定的通道中.
 func (r *RedisCluster) Publish(channel, message string) error {
-	if err := r.up(); err != nil {
+	if err := r.up(); err != nil { // 确认redis处于up状态
 		return err
 	}
 	err := r.singleton().Publish(channel, message).Err()

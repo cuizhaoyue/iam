@@ -12,6 +12,7 @@ import (
 )
 
 // UserStore defines the user storage interface.
+// 定义user相关的接口
 type UserStore interface {
 	Create(ctx context.Context, user *v1.User, opts metav1.CreateOptions) error
 	Update(ctx context.Context, user *v1.User, opts metav1.UpdateOptions) error

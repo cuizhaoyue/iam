@@ -19,7 +19,7 @@ import (
 )
 
 // UserSrv defines functions used to handle user request.
-// 定义处理user请求的功能服务
+// 定义处理user请求的服务
 type UserSrv interface {
 	Create(ctx context.Context, user *v1.User, opts metav1.CreateOptions) error
 	Update(ctx context.Context, user *v1.User, opts metav1.UpdateOptions) error
@@ -31,13 +31,15 @@ type UserSrv interface {
 	ChangePassword(ctx context.Context, user *v1.User) error
 }
 
-// 用户服务，调用仓库层
+// user服务，处理所有user相关的请求，成员类型为存储层的mysql工厂类型，可以处理user数据
 type userService struct {
 	store store.Factory
 }
 
+// 约束userService实现UserSrv接口
 var _ UserSrv = (*userService)(nil)
 
+// 创建user服务实例，传入参数为总服务接口类型的实例
 func newUsers(srv *service) *userService {
 	return &userService{store: srv.store}
 }

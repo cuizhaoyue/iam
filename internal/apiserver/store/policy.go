@@ -12,6 +12,7 @@ import (
 )
 
 // PolicyStore defines the policy storage interface.
+// 定义policy相关的接口
 type PolicyStore interface {
 	Create(ctx context.Context, policy *v1.Policy, opts metav1.CreateOptions) error
 	Update(ctx context.Context, policy *v1.Policy, opts metav1.UpdateOptions) error

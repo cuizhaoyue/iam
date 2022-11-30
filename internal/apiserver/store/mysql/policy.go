@@ -17,10 +17,12 @@ import (
 	"github.com/marmotedu/iam/internal/pkg/util/gormutil"
 )
 
+// policy存储实例，实现了PolicyStore接口，用于操作policy资源
 type policies struct {
 	db *gorm.DB
 }
 
+// 创建policy存储实例，传入参数为mysql工厂实例
 func newPolicies(ds *datastore) *policies {
 	return &policies{ds.db}
 }
