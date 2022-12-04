@@ -10,6 +10,7 @@ import (
 )
 
 // PolicyController create a policy handler used to handle request for policy resource.
+// 创建一个policy处理器，用于处理对Policy资源的请求.
 type PolicyController struct {
 	srv srvv1.Service
 }

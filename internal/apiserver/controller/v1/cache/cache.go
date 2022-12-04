@@ -25,12 +25,14 @@ type Cache struct {
 	store store.Factory
 }
 
+// 定义全局缓存服务实例
 var (
 	cacheServer *Cache
 	once        sync.Once
 )
 
 // GetCacheInsOr return cache server instance with given factory.
+// 传入mysql工厂实例，返回缓存服务实例.
 func GetCacheInsOr(store store.Factory) (*Cache, error) {
 	if store != nil {
 		once.Do(func() {
@@ -38,6 +40,7 @@ func GetCacheInsOr(store store.Factory) (*Cache, error) {
 		})
 	}
 
+	// 如果缓存服务实例为nil报错
 	if cacheServer == nil {
 		return nil, fmt.Errorf("got nil cache server")
 	}
@@ -46,13 +49,14 @@ func GetCacheInsOr(store store.Factory) (*Cache, error) {
 }
 
 // ListSecrets returns all secrets.
+// 返回所有用户的secret
 func (c *Cache) ListSecrets(ctx context.Context, r *pb.ListSecretsRequest) (*pb.ListSecretsResponse, error) {
 	log.L(ctx).Info("list secrets function called.")
 	opts := metav1.ListOptions{
 		Offset: r.Offset,
 		Limit:  r.Limit,
 	}
-
+	// 获取所有用户的secret数据
 	secrets, err := c.store.Secrets().List(ctx, "", opts)
 	if err != nil {
 		return nil, errors.WithCode(code.ErrDatabase, err.Error())
@@ -78,6 +82,7 @@ func (c *Cache) ListSecrets(ctx context.Context, r *pb.ListSecretsRequest) (*pb.
 }
 
 // ListPolicies returns all policies.
+// 返回所有的policy
 func (c *Cache) ListPolicies(ctx context.Context, r *pb.ListPoliciesRequest) (*pb.ListPoliciesResponse, error) {
 	log.L(ctx).Info("list policies function called.")
 	opts := metav1.ListOptions{

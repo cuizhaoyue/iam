@@ -16,7 +16,7 @@ import (
 // Delete deletes the policy by the policy identifier.
 func (p *PolicyController) Delete(c *gin.Context) {
 	log.L(c).Info("delete policy function called.")
-
+	// 通过username和policy的name获取policy数据
 	if err := p.srv.Policies().Delete(c, c.GetString(middleware.UsernameKey), c.Param("name"),
 		metav1.DeleteOptions{}); err != nil {
 		core.WriteResponse(c, err, nil)

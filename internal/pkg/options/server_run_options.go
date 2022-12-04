@@ -49,7 +49,7 @@ func (s *ServerRunOptions) Validate() []error {
 }
 
 // AddFlags adds flags for a specific APIServer to the specified FlagSet.
-// AddFlags 添加APIServer的flag到指定的FlagSet中(由Options接管了命令行选项)
+// AddFlags 添加APIServer的flag到指定的FlagSet组中(由Options接管了命令行选项)
 func (s *ServerRunOptions) AddFlags(fs *pflag.FlagSet) {
 	// Note: the weird ""+ in below lines seems to be the only way to get gofmt to
 	// arrange these text blocks sensibly. Grrr.

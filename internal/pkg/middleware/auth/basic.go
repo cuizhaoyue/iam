@@ -36,19 +36,20 @@ func NewBasicStrategy(compare func(username string, password string) bool) Basic
 // 定义作为gin中间件的basic认证策略
 func (b BasicStrategy) AuthFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// 从header中获取basic认证信息，格式为"Basic xxxxxxxxx"，根据空格分割，最大分成2份
 		auth := strings.SplitN(c.Request.Header.Get("Authorization"), " ", 2)
-
+		// 判断认证格式是否正确，
 		if len(auth) != 2 || auth[0] != "Basic" {
 			core.WriteResponse(
 				c,
 				errors.WithCode(code.ErrSignatureInvalid, "Authorization header format is wrong."),
 				nil,
 			)
-			c.Abort()
+			c.Abort() // 不周调用后面的中间件
 
 			return
 		}
-
+		// 通过base64解码出用户名和密码，然后根据":"分割，最大分割2份，取出username和password
 		payload, _ := base64.StdEncoding.DecodeString(auth[1])
 		pair := strings.SplitN(string(payload), ":", 2)
 
