@@ -118,6 +118,7 @@ iam::log::usage_from_stdin() {
 }
 
 # Print out some info that isn't a top level status line
+# 打印日志的函数
 iam::log::info() {
   local V="${V:-0}"
   if [[ ${IAM_VERBOSE} < ${V} ]]; then

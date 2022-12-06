@@ -7,6 +7,7 @@
 #
 
 GO := go
+# 支持的go版本
 GO_SUPPORTED_VERSIONS ?= 1.13|1.14|1.15|1.16|1.17|1.18|1.19|1.20
 GO_LDFLAGS += -X $(VERSION_PACKAGE).GitVersion=$(VERSION) \
 	-X $(VERSION_PACKAGE).GitCommit=$(GIT_COMMIT) \
@@ -43,9 +44,11 @@ endif
 
 EXCLUDE_TESTS=github.com/marmotedu/iam/test github.com/marmotedu/iam/pkg/log github.com/marmotedu/iam/third_party github.com/marmotedu/iam/internal/pump/storage github.com/marmotedu/iam/internal/pump github.com/marmotedu/iam/internal/pkg/logger
 
+# 检查go的版本
 .PHONY: go.build.verify
 go.build.verify:
 ifneq ($(shell $(GO) version | grep -q -E '\bgo($(GO_SUPPORTED_VERSIONS))\b' && echo 0 || echo 1), 0)
+	# go版本不受支持则产生一条错误
 	$(error unsupported go version. Please make install one of the following supported version: '$(GO_SUPPORTED_VERSIONS)')
 endif
 
@@ -59,7 +62,9 @@ go.build.%:
 	@mkdir -p $(OUTPUT_DIR)/platforms/$(OS)/$(ARCH)
 	@CGO_ENABLED=0 GOOS=$(OS) GOARCH=$(ARCH) $(GO) build $(GO_BUILD_FLAGS) -o $(OUTPUT_DIR)/platforms/$(OS)/$(ARCH)/$(COMMAND)$(GO_OUT_EXT) $(ROOT_PACKAGE)/cmd/$(COMMAND)
 
+# 构建镜像
 .PHONY: go.build
+# go.build: go.build.verify go.build.linux_amd64.iam-apiserver
 go.build: go.build.verify $(addprefix go.build., $(addprefix $(PLATFORM)., $(BINS)))
 
 .PHONY: go.build.multiarch

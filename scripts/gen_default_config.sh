@@ -8,10 +8,10 @@ IAM_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
 
 source "${IAM_ROOT}/scripts/common.sh"
 
-readonly LOCAL_OUTPUT_CONFIGPATH="${LOCAL_OUTPUT_ROOT}/configs"
-mkdir -p ${LOCAL_OUTPUT_CONFIGPATH}
+readonly LOCAL_OUTPUT_CONFIGPATH="${LOCAL_OUTPUT_ROOT}/configs" # /path/iam/_output/configs
+mkdir -p ${LOCAL_OUTPUT_CONFIGPATH} # 创建/path/iam/_output/configs
 
-cd ${IAM_ROOT}/scripts
+cd ${IAM_ROOT}/scripts # cd /path/iam/scripts
 
 export IAM_APISERVER_INSECURE_BIND_ADDRESS=0.0.0.0
 export IAM_AUTHZ_SERVER_INSECURE_BIND_ADDRESS=0.0.0.0

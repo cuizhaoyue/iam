@@ -7,7 +7,6 @@ package apiserver
 import (
 	"context"
 	"fmt"
-
 	pb "github.com/marmotedu/api/proto/apiserver/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -26,10 +25,10 @@ import (
 )
 
 type apiServer struct {
-	gs               *shutdown.GracefulShutdown
-	redisOptions     *genericoptions.RedisOptions
-	gRPCAPIServer    *grpcAPIServer
-	genericAPIServer *genericapiserver.GenericAPIServer
+	gs               *shutdown.GracefulShutdown         // 优雅关闭服务管理器
+	redisOptions     *genericoptions.RedisOptions       // redis选项
+	gRPCAPIServer    *grpcAPIServer                     // grpc服务
+	genericAPIServer *genericapiserver.GenericAPIServer // http/https服务
 }
 
 type preparedAPIServer struct {
@@ -130,6 +129,8 @@ func (c *ExtraConfig) complete() *completedExtraConfig {
 func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
 	// 创建grpc服务
 	creds, err := credentials.NewServerTLSFromFile(c.ServerCert.CertKey.CertFile, c.ServerCert.CertKey.KeyFile)
+	// disableCreds := insecure.NewCredentials() // grpc.Creds(disableCreds) 禁用 transport security
+
 	if err != nil {
 		log.Fatalf("Failed to generate credentials %s", err.Error())
 	}
@@ -173,7 +174,7 @@ func buildGenericConfig(cfg *config.Config) (genericConfig *genericapiserver.Con
 	return
 }
 
-//nolint: unparam
+// nolint: unparam
 func buildExtraConfig(cfg *config.Config) (*ExtraConfig, error) {
 	return &ExtraConfig{
 		Addr:         fmt.Sprintf("%s:%d", cfg.GRPCOptions.BindAddress, cfg.GRPCOptions.BindPort), // 设置grpc服务的监听地址
