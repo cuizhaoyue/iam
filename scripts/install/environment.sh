@@ -12,6 +12,7 @@ IAM_ROOT=$(dirname "${BASH_SOURCE[0]}")/../..
 # 生成文件存放目录
 LOCAL_OUTPUT_ROOT="${IAM_ROOT}/${OUT_DIR:-_output}"
 
+# readonly 定义只读变量
 # 设置统一的密码，方便记忆
 readonly PASSWORD=${PASSWORD:-'iam59!z$'}
 

@@ -7,7 +7,7 @@
 #
 
 GO := go
-# 支持的go版本
+# 支持的go版本，?= 如果变量没有被赋值，则变量赋予等号后的值
 GO_SUPPORTED_VERSIONS ?= 1.13|1.14|1.15|1.16|1.17|1.18|1.19|1.20
 GO_LDFLAGS += -X $(VERSION_PACKAGE).GitVersion=$(VERSION) \
 	-X $(VERSION_PACKAGE).GitCommit=$(GIT_COMMIT) \
@@ -54,15 +54,21 @@ endif
 
 .PHONY: go.build.%
 go.build.%:
+	# 使用eval函数使make解析后面的命令
+	# word函数 选择后面内容的第2部分，后面内容把"."替换成" ", $*匹配到的是linux_amd64.iam-apiserver
+	# 最终解析出 COMMAND := iam-apiserver 这只是其中一个例子
 	$(eval COMMAND := $(word 2,$(subst ., ,$*)))
-	$(eval PLATFORM := $(word 1,$(subst ., ,$*)))
-	$(eval OS := $(word 1,$(subst _, ,$(PLATFORM))))
-	$(eval ARCH := $(word 2,$(subst _, ,$(PLATFORM))))
-	@echo "===========> Building binary $(COMMAND) $(VERSION) for $(OS) $(ARCH)"
-	@mkdir -p $(OUTPUT_DIR)/platforms/$(OS)/$(ARCH)
+	$(eval PLATFORM := $(word 1,$(subst ., ,$*))) # 解析出PLATFORM := linux_amd64
+	$(eval OS := $(word 1,$(subst _, ,$(PLATFORM)))) # OS := linux
+	$(eval ARCH := $(word 2,$(subst _, ,$(PLATFORM)))) # ARCH := amd64
+	@echo "===========> Building binary $(COMMAND) $(VERSION) for $(OS) $(ARCH)" # VERSION定义在了common.mk中
+	@mkdir -p $(OUTPUT_DIR)/platforms/$(OS)/$(ARCH) # 创建目录 /_output/platforms/linux/amd64
+	# CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build $(GO_BUILD_FLAGS) -o /_output/platforms/linux/amd64/iam-apiserver iam/cmd/iam-apiserver
 	@CGO_ENABLED=0 GOOS=$(OS) GOARCH=$(ARCH) $(GO) build $(GO_BUILD_FLAGS) -o $(OUTPUT_DIR)/platforms/$(OS)/$(ARCH)/$(COMMAND)$(GO_OUT_EXT) $(ROOT_PACKAGE)/cmd/$(COMMAND)
 
-# 构建镜像
+# 构建镜像，go.build依赖其它构建项
+# 1、先执行go.build.verify，检查安装了支持的go版本，没有安装则返回一条错误信息
+# 2、以"go.build."作为前缀+$(PLATFORM).+$(BIND), $(PLATFORM)定义在了common.mk中，BIND传入的是iam-apiserver, 最终变量值是"go.build.linux_amd64.iam-apiserver"
 .PHONY: go.build
 # go.build: go.build.verify go.build.linux_amd64.iam-apiserver
 go.build: go.build.verify $(addprefix go.build., $(addprefix $(PLATFORM)., $(BINS)))
