@@ -126,21 +126,24 @@ func (s preparedAPIServer) Run() error {
 	return s.genericAPIServer.Run()
 }
 
+// 补全后的grpc配置
 type completedExtraConfig struct {
 	*ExtraConfig
 }
 
 // Complete fills in any fields not set that are required to have valid data and can be derived from other fields.
-// 对GRPC服务配置进行补全
+// 对GRPC服务配置进行补全操作
 func (c *ExtraConfig) complete() *completedExtraConfig {
 	if c.Addr == "" { // 如果grpc服务没有配置监听地址则配置默认地址
 		c.Addr = "127.0.0.1:8081"
 	}
 
+	// 返回补全后的grpc配置
 	return &completedExtraConfig{c}
 }
 
 // New create a grpcAPIServer instance.
+// 根据补全后的配置构建grpcAPIServer服务实例
 func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
 	// 创建grpc服务
 	creds, err := credentials.NewServerTLSFromFile(c.ServerCert.CertKey.CertFile, c.ServerCert.CertKey.KeyFile)
