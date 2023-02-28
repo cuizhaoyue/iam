@@ -24,6 +24,8 @@ DOCKER_MACHINE_NAME=${DOCKER_MACHINE_NAME:-"iam-dev"}
 readonly DOCKER_MACHINE_DRIVER=${DOCKER_MACHINE_DRIVER:-"virtualbox --virtualbox-cpu-count -1"}
 
 # This will canonicalize the path
+#BASH_SOURCE[0] 等价于 BASH_SOURCE ,取得当前执行的 shell 文件所在的路径及文件名
+#进入上一级目录并打印目录的路径，即iam的绝对路径，IAM_ROOT是iam的绝对路径
 IAM_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd -P)
 
 source "${IAM_ROOT}/scripts/lib/init.sh"
@@ -54,7 +56,7 @@ readonly IAM_BASE_IMAGE_REGISTRY="${IAM_BASE_IMAGE_REGISTRY:-us.gcr.io/k8s-artif
 #                    is really remote, this is the stuff that has to be copied
 #                    back.
 # OUT_DIR can come in from the Makefile, so honor it.
-readonly LOCAL_OUTPUT_ROOT="${IAM_ROOT}/${OUT_DIR:-_output}"
+readonly LOCAL_OUTPUT_ROOT="${IAM_ROOT}/${OUT_DIR:-_output}" # /path/iam/_output
 readonly LOCAL_OUTPUT_SUBPATH="${LOCAL_OUTPUT_ROOT}/platforms"
 readonly LOCAL_OUTPUT_BINPATH="${LOCAL_OUTPUT_SUBPATH}"
 readonly LOCAL_OUTPUT_GOPATH="${LOCAL_OUTPUT_SUBPATH}/go"

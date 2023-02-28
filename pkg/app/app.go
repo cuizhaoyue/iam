@@ -66,11 +66,11 @@ Use "%s --help" for more information about a command.{{end}}
 // It is recommended that an app be created with the app.NewApp() function.
 // App是cli应用的主要结构体
 type App struct {
-	basename    string //
-	name        string // 应用名称
-	description string // 应用描述
-	options     CliOptions
-	runFunc     RunFunc // 定义启用时的callback
+	basename    string     // 应用二进制文件名称
+	name        string     // 应用名称，应用的简短描述
+	description string     // 应用的详细描述
+	options     CliOptions // 应用的命令行选项
+	runFunc     RunFunc    // 应用的启动函数，初始化应用，并最终启动 HTTP 和 GRPC Web 服务
 	silence     bool
 	noVersion   bool
 	noConfig    bool
@@ -205,14 +205,13 @@ func (a *App) buildCommand() {
 		}
 		cmd.SetHelpCommand(helpCommand(FormatBaseName(a.basename))) // 设置help信息的Command
 	}
-	if a.runFunc != nil { // 设置运行函数
-		cmd.RunE = a.runCommand
-	}
 
+	// 命令行参数解析
 	var namedFlagSets cliflag.NamedFlagSets
 	if a.options != nil { // 将Options配置的Flag添加到FlagSet中
-		namedFlagSets = a.options.Flags()
+		namedFlagSets = a.options.Flags() // 创建并返回一批FlagSet，并将Flag进行分组
 		fs := cmd.Flags()
+		// 把所有的FlagSet添加到当前cmd的FlagSet中
 		for _, f := range namedFlagSets.FlagSets {
 			fs.AddFlagSet(f)
 		}
@@ -221,14 +220,22 @@ func (a *App) buildCommand() {
 	if !a.noVersion { // 添加version相关的Flag到global FlagSet中
 		verflag.AddFlags(namedFlagSets.FlagSet("global"))
 	}
-	if !a.noConfig { // 添加config相关的Flag到global FlagSet中
+	if !a.noConfig { // 从配置文件中读取配置，添加config相关的Flag到global FlagSet中
+		// 通过 addConfigFlag 调用，添加了 -c, --config FILE 命令行参数，用来指定配置文件
 		addConfigFlag(a.basename, namedFlagSets.FlagSet("global"))
 	}
+	// 为global FlagSet添加`-h, --help`的命令行参数
 	globalflag.AddGlobalFlags(namedFlagSets.FlagSet("global"), cmd.Name())
 	// add new global flagset to cmd FlagSet
-	cmd.Flags().AddFlagSet(namedFlagSets.FlagSet("global")) // 添加global FlagSet到 cmd FlagSet中
+	// 把global FlagSet添加到当前cmd的FlagSet中
+	cmd.Flags().AddFlagSet(namedFlagSets.FlagSet("global"))
+
+	if a.runFunc != nil { // 设置运行函数，设置RunE的步骤可以放在return前更容易理解
+		cmd.RunE = a.runCommand
+	}
 
 	addCmdTemplate(&cmd, namedFlagSets) // 设置cmd的help/usage
+
 	a.cmd = &cmd
 }
 
@@ -254,12 +261,14 @@ func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 		verflag.PrintAndExitIfRequested()
 	}
 
+	// 在命令执行前，读取配置文件。在命令执行时，会将配置文件中的配置项和命令行参数绑定，
+	// 并将 Viper 的配置 Unmarshal 到传入的 Options 中
 	if !a.noConfig {
 		// 把FlagSet中的所有Flag绑定到配置中，每个Flag的long名称作为配置的key
 		if err := viper.BindPFlags(cmd.Flags()); err != nil {
 			return err
 		}
-		// 把配置反序列化到options中
+		// 把配置Unmarshal到options中，然后通过Options变量中的值来执行后边的业务逻辑
 		if err := viper.Unmarshal(a.options); err != nil {
 			return err
 		}
@@ -288,6 +297,7 @@ func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 }
 
 func (a *App) applyOptionRules() error {
+	// options是一个CliOptions接口实例，断言成CompleteableOptions接口类型，如果成功返回CompleteableOptions的接口实例
 	if completeableOptions, ok := a.options.(CompleteableOptions); ok {
 		if err := completeableOptions.Complete(); err != nil {
 			return err

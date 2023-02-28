@@ -18,24 +18,26 @@ import (
 
 // Create creates a new ladon policy.
 // It will convert the policy to string and store it in the storage.
+// 创建一个新的ladon.Policy资源实例，它会把policy转换成字符串然后保存到后端存储中.
 func (p *PolicyController) Create(c *gin.Context) {
 	log.L(c).Info("create policy function called.")
 
+	// 获取请求中的数据
 	var r v1.Policy
 	if err := c.ShouldBindJSON(&r); err != nil {
 		core.WriteResponse(c, errors.WithCode(code.ErrBind, err.Error()), nil)
 
 		return
 	}
-
+	// 检验请求数据
 	if errs := r.Validate(); len(errs) != 0 {
 		core.WriteResponse(c, errors.WithCode(code.ErrValidation, errs.ToAggregate().Error()), nil)
 
 		return
 	}
-
+	// 设置username
 	r.Username = c.GetString(middleware.UsernameKey)
-
+	// 保存policy到数据库中
 	if err := p.srv.Policies().Create(c, &r, metav1.CreateOptions{}); err != nil {
 		core.WriteResponse(c, err, nil)
 

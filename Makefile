@@ -56,6 +56,9 @@ export USAGE_OPTIONS
 # ==============================================================================
 # Targets
 
+# 以创建iam-apiserver二进制文件为例，make build BIND=iam-apiserver
+# go.build在 scripts/make-rules/golang.mk 中
+
 ## build: Build source code for host platform.
 .PHONY: build
 build:

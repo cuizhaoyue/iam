@@ -26,18 +26,19 @@ func newPolicies(ds *datastore) *policies {
 }
 
 // List returns all the authorization policies.
+// 返回所有的认证策略
 func (p *policies) List() (map[string][]*ladon.DefaultPolicy, error) {
 	pols := make(map[string][]*ladon.DefaultPolicy)
 
 	log.Info("Loading policies")
 
-	req := &pb.ListPoliciesRequest{
+	req := &pb.ListPoliciesRequest{ // 不分页
 		Offset: pointer.ToInt64(0),
 		Limit:  pointer.ToInt64(-1),
 	}
 
 	var resp *pb.ListPoliciesResponse
-	err := retry.Do(
+	err := retry.Do( // 尝试三次获取列表数据
 		func() error {
 			var listErr error
 			resp, listErr = p.cli.ListPolicies(context.Background(), req)
@@ -54,7 +55,7 @@ func (p *policies) List() (map[string][]*ladon.DefaultPolicy, error) {
 
 	log.Infof("Policies found (%d total)[username:name]:", len(resp.Items))
 
-	for _, v := range resp.Items {
+	for _, v := range resp.Items { // 打印用户名和策略名称
 		log.Infof(" - %s:%s", v.Username, v.Name)
 
 		var policy ladon.DefaultPolicy
@@ -65,7 +66,7 @@ func (p *policies) List() (map[string][]*ladon.DefaultPolicy, error) {
 			continue
 		}
 
-		pols[v.Username] = append(pols[v.Username], &policy)
+		pols[v.Username] = append(pols[v.Username], &policy) // 用户名对应多个策略
 	}
 
 	return pols, nil

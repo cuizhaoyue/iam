@@ -12,6 +12,7 @@ import (
 )
 
 // AnalyticsOptions contains configuration items related to analytics.
+// AnalyticsOptions 包含和analytics相关的配置条目.
 type AnalyticsOptions struct {
 	PoolSize                int           `json:"pool-size"                 mapstructure:"pool-size"`
 	RecordsBufferSize       uint64        `json:"records-buffer-size"       mapstructure:"records-buffer-size"`

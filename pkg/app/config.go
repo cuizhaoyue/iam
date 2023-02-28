@@ -6,23 +6,23 @@ package app
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-
 	"github.com/gosuri/uitable"
 	"github.com/marmotedu/component-base/pkg/util/homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 const configFlagName = "config"
 
 var cfgFile string
 
-//nolint: gochecknoinits
+// nolint: gochecknoinits
 func init() { // 初始化中设置配置文件路径
+	// 通过 addConfigFlag 调用，添加了 -c, --config FILE 命令行参数，用来指定配置文件
 	pflag.StringVarP(&cfgFile, "config", "c", cfgFile, "Read configuration from specified `FILE`, "+
 		"support JSON, TOML, YAML, HCL, or Java properties formats.")
 }
@@ -32,12 +32,17 @@ func init() { // 初始化中设置配置文件路径
 // addConfigFlag 添加config的flag到指定的FlagSet中，读取环境变量和配置文件
 func addConfigFlag(basename string, fs *pflag.FlagSet) {
 	fs.AddFlag(pflag.Lookup(configFlagName))
-
+	// 支持环境变量，通过 viper.SetEnvPrefix 来设置环境变量前缀，
+	// 避免跟系统中的环境变量重名。通过 viper.SetEnvKeyReplacer 重写了 Env 键
 	viper.AutomaticEnv() // 读取环境变量
 	viper.SetEnvPrefix(strings.Replace(strings.ToUpper(basename), "-", "_", -1))
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 
+	// 指定 Cobra Command 在执行命令之前，需要做的初始化工作
 	cobra.OnInitialize(func() { // 执行命令前读取配置文件
+		// 如果命令行参数中没有指定配置文件的路径，则加载默认路径下的配置文件，
+		// 通过 viper.AddConfigPath、viper.SetConfigName 来设置配置文件搜索路径和配置文件名。
+		// 通过设置默认的配置文件，可以使我们不用携带任何命令行参数，即可运行程序。
 		if cfgFile != "" {
 			viper.SetConfigFile(cfgFile) // 指定了配置文件路径时直接读取配置文件
 		} else {

@@ -47,6 +47,9 @@ func NewRedisOptions() *RedisOptions {
 }
 
 // Validate verifies flags passed to RedisOptions.
+// 每个配置分组，都实现了 Validate() 函数，对自己负责的配置进行校验。
+// 通过这种方式，程序会更加清晰。因为只有配置提供者才更清楚如何校验自己的配置项，
+// 所以最好的做法是将配置的校验放权给配置提供者（分组）
 func (o *RedisOptions) Validate() []error {
 	errs := []error{}
 

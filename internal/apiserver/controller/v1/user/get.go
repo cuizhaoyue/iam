@@ -16,6 +16,7 @@ import (
 func (u *UserController) Get(c *gin.Context) {
 	log.L(c).Info("get user function called.")
 
+	// 从path参数中获取用户名，根据用户名从数据库中获取user数据
 	user, err := u.srv.Users().Get(c, c.Param("name"), metav1.GetOptions{})
 	if err != nil {
 		core.WriteResponse(c, err, nil)

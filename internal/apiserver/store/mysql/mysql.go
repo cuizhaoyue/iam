@@ -18,6 +18,7 @@ import (
 	"github.com/marmotedu/iam/pkg/db"
 )
 
+// Mysql工厂实例，实现了工厂中的所有方法，用来操作所有的资源对象
 type datastore struct {
 	db *gorm.DB
 
@@ -56,13 +57,14 @@ func (ds *datastore) Close() error {
 	return db.Close()
 }
 
+// 定义全局变量，数据工厂实例
 var (
 	mysqlFactory store.Factory
 	once         sync.Once
 )
 
 // GetMySQLFactoryOr create mysql factory with the given config.
-// 根据给定的配置创建mysql工厂
+// 根据给定的配置创建mysql数据工厂
 func GetMySQLFactoryOr(opts *genericoptions.MySQLOptions) (store.Factory, error) {
 	if opts == nil && mysqlFactory == nil {
 		return nil, fmt.Errorf("failed to get mysql store fatory")
@@ -88,7 +90,7 @@ func GetMySQLFactoryOr(opts *genericoptions.MySQLOptions) (store.Factory, error)
 		// not suggested in production environment.
 		// migrateDatabase(dbIns)
 
-		mysqlFactory = &datastore{dbIns}
+		mysqlFactory = &datastore{dbIns} // 设置全局的mysql数据工厂
 	})
 
 	if mysqlFactory == nil || err != nil {

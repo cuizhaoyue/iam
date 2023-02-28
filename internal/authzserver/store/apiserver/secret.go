@@ -24,6 +24,7 @@ func newSecrets(ds *datastore) *secrets {
 }
 
 // List returns all the authorization secrets.
+// 返回所有的认证secret
 func (s *secrets) List() (map[string]*pb.SecretInfo, error) {
 	secrets := make(map[string]*pb.SecretInfo)
 
@@ -38,6 +39,7 @@ func (s *secrets) List() (map[string]*pb.SecretInfo, error) {
 	err := retry.Do(
 		func() error {
 			var listErr error
+			// 通过grpc协议从apiserver获取secret列表
 			resp, listErr = s.cli.ListSecrets(context.Background(), req)
 			if listErr != nil {
 				return listErr

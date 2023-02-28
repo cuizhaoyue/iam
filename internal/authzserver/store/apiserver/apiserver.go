@@ -33,6 +33,7 @@ var (
 )
 
 // GetAPIServerFactoryOrDie return cache instance and panics on any error.
+// 返回缓存实例，如果出现错误则panic.
 func GetAPIServerFactoryOrDie(address string, clientCA string) store.Factory {
 	once.Do(func() {
 		var (

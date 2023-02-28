@@ -17,10 +17,12 @@ import (
 	"github.com/marmotedu/iam/internal/pkg/util/gormutil"
 )
 
+// secret存储实例，实现了SecretStore的接口，用来操作secret资源
 type secrets struct {
 	db *gorm.DB
 }
 
+// 创建secret实例，传入的参数是mysq工厂实例
 func newSecrets(ds *datastore) *secrets {
 	return &secrets{ds.db}
 }
@@ -96,7 +98,7 @@ func (s *secrets) List(ctx context.Context, username string, opts metav1.ListOpt
 		Order("id desc").
 		Find(&ret.Items).
 		Offset(-1).
-		Limit(-1).
+		Limit(-1). // Cancel limit condition with -1，-1代表取消Limit条件
 		Count(&ret.TotalCount)
 
 	return ret, d.Error

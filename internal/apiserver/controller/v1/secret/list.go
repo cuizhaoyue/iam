@@ -19,12 +19,14 @@ import (
 func (s *SecretController) List(c *gin.Context) {
 	log.L(c).Info("list secret function called.")
 	var r metav1.ListOptions
+	// 获取query参数
 	if err := c.ShouldBindQuery(&r); err != nil {
 		core.WriteResponse(c, errors.WithCode(code.ErrBind, err.Error()), nil)
 
 		return
 	}
 
+	// 获取指定用户名下的所有secret数据
 	secrets, err := s.srv.Secrets().List(c, c.GetString(middleware.UsernameKey), r)
 	if err != nil {
 		core.WriteResponse(c, err, nil)

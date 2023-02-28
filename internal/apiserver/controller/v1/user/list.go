@@ -16,6 +16,7 @@ import (
 
 // List list the users in the storage.
 // Only administrator can call this function.
+// 获取user列表，仅有admin用户可以调用这个函数
 func (u *UserController) List(c *gin.Context) {
 	log.L(c).Info("list user function called.")
 

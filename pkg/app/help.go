@@ -18,7 +18,7 @@ const (
 	flagHelpShorthand = "H"
 )
 
-// 打印帮助信息
+// help Command
 func helpCommand(name string) *cobra.Command {
 	return &cobra.Command{
 		Use:   "help [command]",

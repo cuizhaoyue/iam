@@ -17,6 +17,7 @@ import (
 func (s *SecretController) Get(c *gin.Context) {
 	log.L(c).Info("get secret function called.")
 
+	// 多path参数中获取secret名称，通过用户名和secret名称获取secret信息
 	secret, err := s.srv.Secrets().Get(c, c.GetString(middleware.UsernameKey), c.Param("name"), metav1.GetOptions{})
 	if err != nil {
 		core.WriteResponse(c, err, nil)

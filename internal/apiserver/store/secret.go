@@ -12,6 +12,7 @@ import (
 )
 
 // SecretStore defines the secret storage interface.
+// 定义secret相关的接口
 type SecretStore interface {
 	Create(ctx context.Context, secret *v1.Secret, opts metav1.CreateOptions) error
 	Update(ctx context.Context, secret *v1.Secret, opts metav1.UpdateOptions) error

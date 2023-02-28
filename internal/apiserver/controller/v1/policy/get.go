@@ -16,7 +16,7 @@ import (
 // Get return policy by the policy identifier.
 func (p *PolicyController) Get(c *gin.Context) {
 	log.L(c).Info("get policy function called.")
-
+	// 从path参数中获取policy的name，通过username和name获取policy数据
 	pol, err := p.srv.Policies().Get(c, c.GetString(middleware.UsernameKey), c.Param("name"), metav1.GetOptions{})
 	if err != nil {
 		core.WriteResponse(c, err, nil)

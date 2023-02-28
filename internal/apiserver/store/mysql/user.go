@@ -17,12 +17,12 @@ import (
 	"github.com/marmotedu/iam/internal/pkg/util/gormutil"
 )
 
-// 用户对象
+// user存储实例，实现了UserStore接口，实现了操作user对象的所有方法
 type users struct {
 	db *gorm.DB
 }
 
-// 新建一个用户对象
+// 新建一个user存储实例，传入参数为工厂实例对象
 func newUsers(ds *datastore) *users {
 	return &users{ds.db}
 }
@@ -40,15 +40,18 @@ func (u *users) Update(ctx context.Context, user *v1.User, opts metav1.UpdateOpt
 // Delete deletes the user by the user identifier.
 func (u *users) Delete(ctx context.Context, username string, opts metav1.DeleteOptions) error {
 	// delete related policy first
+	// 首先要删除用户对应的策略
 	pol := newPolicies(&datastore{u.db})
 	if err := pol.DeleteByUser(ctx, username, opts); err != nil {
 		return err
 	}
 
+	// 通过Unscoped永久删除数据
 	if opts.Unscoped {
 		u.db = u.db.Unscoped()
 	}
 
+	// 删除用户
 	err := u.db.Where("name = ?", username).Delete(&v1.User{}).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return errors.WithCode(code.ErrDatabase, err.Error())

@@ -66,7 +66,9 @@ func createAuthzServer(cfg *config.Config) (*authzServer, error) {
 	return server, nil
 }
 
+// PrepareRun 应用初始化
 func (s *authzServer) PrepareRun() preparedAuthzServer {
+	// 初始化，包括保持redis连接、创建缓存实例、启动密钥和策略的同步工作、开启analytics服务
 	_ = s.initialize()
 
 	initRouter(s.genericAPIServer.Engine)
@@ -74,7 +76,7 @@ func (s *authzServer) PrepareRun() preparedAuthzServer {
 	return preparedAuthzServer{s}
 }
 
-// Run start to run AuthzServer.
+// Run start to run AuthzServer. 运行服务
 func (s preparedAuthzServer) Run() error {
 	stopCh := make(chan struct{})
 
@@ -84,10 +86,11 @@ func (s preparedAuthzServer) Run() error {
 	}
 
 	//nolint: errcheck
-	go s.genericAPIServer.Run()
+	go s.genericAPIServer.Run() // 启动http服务
 
 	// in order to ensure that the reported data is not lost,
 	// please ensure the following graceful shutdown sequence
+	// 为了保证数据不丢失，要保证下面的优雅关闭服务的顺序.
 	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error {
 		s.genericAPIServer.Close()
 		if s.analyticsOptions.Enable {
@@ -125,6 +128,7 @@ func buildGenericConfig(cfg *config.Config) (genericConfig *genericapiserver.Con
 	return
 }
 
+// 构建redis的配置
 func (s *authzServer) buildStorageConfig() *storage.Config {
 	return &storage.Config{
 		Host:                  s.redisOptions.Host,
@@ -147,22 +151,24 @@ func (s *authzServer) initialize() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	s.redisCancelFunc = cancel
 
-	// keep redis connected
+	// keep redis connected 保持和redis的连接状，断开会重新连接
 	go storage.ConnectToRedis(ctx, s.buildStorageConfig())
 
 	// cron to reload all secrets and policies from iam-apiserver
+	// 创建缓存实例，定时从iam-apiserver中同步secret和policy过来
 	cacheIns, err := cache.GetCacheInsOr(apiserver.GetAPIServerFactoryOrDie(s.rpcServer, s.clientCA))
 	if err != nil {
 		return errors.Wrap(err, "get cache instance failed")
 	}
 
+	// load包完成密钥和策略的缓存
 	load.NewLoader(ctx, cacheIns).Start()
 
-	// start analytics service
+	// start analytics service 开启analytics服务
 	if s.analyticsOptions.Enable {
-		analyticsStore := storage.RedisCluster{KeyPrefix: RedisKeyPrefix}
-		analyticsIns := analytics.NewAnalytics(s.analyticsOptions, &analyticsStore)
-		analyticsIns.Start()
+		analyticsStore := storage.RedisCluster{KeyPrefix: RedisKeyPrefix}           // analytics服务使用的redis存储实例
+		analyticsIns := analytics.NewAnalytics(s.analyticsOptions, &analyticsStore) // 创建analytics实例
+		analyticsIns.Start()                                                        // 启动analytics服务
 	}
 
 	return nil

@@ -39,7 +39,7 @@ func run(opts *options.Options) app.RunFunc {
 		log.Init(opts.Log) // 初始化日志配置（没有这一步就会使用默认的日志配置）
 		defer log.Flush()
 
-		cfg, err := config.CreateConfigFromOptions(opts) // 根据Options配置构建应用配置
+		cfg, err := config.CreateConfigFromOptions(opts) // 输入options获取到应用配置
 		if err != nil {
 			return err
 		}

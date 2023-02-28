@@ -16,6 +16,7 @@ import (
 )
 
 // SecretSrv defines functions used to handle secret request.
+// 定义处理secret请求的服务接口
 type SecretSrv interface {
 	Create(ctx context.Context, secret *v1.Secret, opts metav1.CreateOptions) error
 	Update(ctx context.Context, secret *v1.Secret, opts metav1.UpdateOptions) error
@@ -25,12 +26,15 @@ type SecretSrv interface {
 	List(ctx context.Context, username string, opts metav1.ListOptions) (*v1.SecretList, error)
 }
 
+// secret服务接口实例
 type secretService struct {
 	store store.Factory
 }
 
+// 约束secret服务接口实例
 var _ SecretSrv = (*secretService)(nil)
 
+// 创建secret服务实例，传入的参数为服务总接口service实例
 func newSecrets(srv *service) *secretService {
 	return &secretService{store: srv.store}
 }
@@ -52,6 +56,7 @@ func (s *secretService) Update(ctx context.Context, secret *v1.Secret, opts meta
 	return nil
 }
 
+// Delete 删除用户对应的secret
 func (s *secretService) Delete(ctx context.Context, username, secretID string, opts metav1.DeleteOptions) error {
 	if err := s.store.Secrets().Delete(ctx, username, secretID, opts); err != nil {
 		return err

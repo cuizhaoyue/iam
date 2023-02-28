@@ -16,6 +16,7 @@ import (
 )
 
 // PolicySrv defines functions used to handle policy request.
+// 定义处理policy请求的服务
 type PolicySrv interface {
 	Create(ctx context.Context, policy *v1.Policy, opts metav1.CreateOptions) error
 	Update(ctx context.Context, policy *v1.Policy, opts metav1.UpdateOptions) error
@@ -25,12 +26,15 @@ type PolicySrv interface {
 	List(ctx context.Context, username string, opts metav1.ListOptions) (*v1.PolicyList, error)
 }
 
+// policy服务实例
 type policyService struct {
 	store store.Factory
 }
 
+// 约束policyService必须满足PolicySrv接口
 var _ PolicySrv = (*policyService)(nil)
 
+// 创建policy的服务实例，传入的参数类型为总服务service实例
 func newPolicies(srv *service) *policyService {
 	return &policyService{store: srv.store}
 }
@@ -52,6 +56,7 @@ func (s *policyService) Update(ctx context.Context, policy *v1.Policy, opts meta
 	return nil
 }
 
+// Delete 删除用户对应的策略
 func (s *policyService) Delete(ctx context.Context, username, name string, opts metav1.DeleteOptions) error {
 	if err := s.store.Policies().Delete(ctx, username, name, opts); err != nil {
 		return err

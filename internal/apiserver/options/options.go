@@ -9,7 +9,6 @@ import (
 	cliflag "github.com/marmotedu/component-base/pkg/cli/flag"
 	"github.com/marmotedu/component-base/pkg/json"
 	"github.com/marmotedu/component-base/pkg/util/idutil"
-
 	genericoptions "github.com/marmotedu/iam/internal/pkg/options"
 	"github.com/marmotedu/iam/internal/pkg/server"
 	"github.com/marmotedu/iam/pkg/log"
@@ -53,7 +52,7 @@ func (o *Options) ApplyTo(c *server.Config) error {
 }
 
 // Flags returns flags for a specific APIServer by section name.
-// Flags 把Options选项的配置加入到各个对应的FlagSet中，根据各区域名称返回特定的APIServer的FlagSet
+// Flags 对Flag进行分组。把Options选项的配置加入到各个命名的FlagSet中。
 func (o *Options) Flags() (fss cliflag.NamedFlagSets) {
 	o.GenericServerRunOptions.AddFlags(fss.FlagSet("generic"))
 	o.JwtOptions.AddFlags(fss.FlagSet("jwt"))
@@ -76,6 +75,10 @@ func (o *Options) String() string {
 }
 
 // Complete set default Options.
+// 通过配置补全，可以确保一些重要的配置项具有默认值，
+// 当这些配置项没有被配置时，程序也仍然能够正常启动。
+// 一个大型项目，有很多配置项，我们不可能对每一个配置项都进行配置。
+// 所以，给重要配置项设置默认值，就显得很重要了。
 func (o *Options) Complete() error {
 	if o.JwtOptions.Key == "" {
 		o.JwtOptions.Key = idutil.NewSecretKey()

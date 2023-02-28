@@ -30,6 +30,10 @@ type ConfigurableOptions interface {
 // CompleteableOptions abstracts options which can be completed.
 // CompleteableOptions 抽象可以被补全的选项。
 type CompleteableOptions interface {
+	// Complete 通过配置补全，可以确保一些重要的配置项具有默认值，
+	// 当这些配置项没有被配置时，程序也仍然能够正常启动。
+	// 一个大型项目，有很多配置项，我们不可能对每一个配置项都进行配置。
+	// 所以，给重要配置项设置默认值，就显得很重要了。
 	Complete() error
 }
 

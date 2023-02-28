@@ -59,7 +59,7 @@ func installController(g *gin.Engine) *gin.Engine {
 			userv1.DELETE(":name", userController.Delete)                      // admin api，删除单个用户
 			userv1.PUT(":name/change-password", userController.ChangePassword) // 修改用户
 			userv1.PUT(":name", userController.Update)                         // 更新用户信息
-			userv1.GET("", userController.List)                                // 列出用户信息
+			userv1.GET("", userController.List)                                // 获取用户列表
 			userv1.GET(":name", userController.Get)                            // admin api，获取用户信息
 		}
 

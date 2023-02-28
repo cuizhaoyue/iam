@@ -27,9 +27,9 @@ import (
 // type GenericAPIServer gin.Engine.
 // GenericAPIServer 包含iam api server的状态
 type GenericAPIServer struct {
-	middlewares []string
+	middlewares []string // 需要加载的中间件
 	// SecureServingInfo holds configuration of the TLS server.
-	SecureServingInfo *SecureServingInfo
+	SecureServingInfo *SecureServingInfo // http服务需要枪的配置
 
 	// InsecureServingInfo holds configuration of the insecure HTTP server.
 	InsecureServingInfo *InsecureServingInfo

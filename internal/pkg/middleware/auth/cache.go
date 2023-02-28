@@ -40,14 +40,16 @@ type CacheStrategy struct {
 var _ middleware.AuthStrategy = &CacheStrategy{}
 
 // NewCacheStrategy create cache strategy with function which can list and cache secrets.
+// 创建缓存策略
 func NewCacheStrategy(get func(kid string) (Secret, error)) CacheStrategy {
 	return CacheStrategy{get}
 }
 
 // AuthFunc defines cache strategy as the gin authentication middleware.
+// 定义缓存策略作为gin中间件
 func (cache CacheStrategy) AuthFunc() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		header := c.Request.Header.Get("Authorization")
+		header := c.Request.Header.Get("Authorization") // 从请求中获取header
 		if len(header) == 0 {
 			core.WriteResponse(c, errors.WithCode(code.ErrMissingHeader, "Authorization header cannot be empty."), nil)
 			c.Abort()
@@ -56,27 +58,29 @@ func (cache CacheStrategy) AuthFunc() gin.HandlerFunc {
 		}
 
 		var rawJWT string
-		// Parse the header to get the token part.
+		// Parse the header to get the token part. 解析jwt token
 		fmt.Sscanf(header, "Bearer %s", &rawJWT)
 
 		// Use own validation logic, see below
 		var secret Secret
 
-		claims := &jwt.MapClaims{}
+		claims := &jwt.MapClaims{} // claim保存jwt token中解码后的Payload
 		// Verify the token
+		// 解析并验证token，第三个函数Keyfunc接收解析且未验证的token，允许用户使用token中属性来验证要使用的key
 		parsedT, err := jwt.ParseWithClaims(rawJWT, claims, func(token *jwt.Token) (interface{}, error) {
 			// Validate the alg is HMAC signature
+			// 验证token的加密算法
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 			}
-
+			// 验证是否包含密钥id
 			kid, ok := token.Header["kid"].(string)
 			if !ok {
 				return nil, ErrMissingKID
 			}
 
 			var err error
-			secret, err = cache.get(kid)
+			secret, err = cache.get(kid) // 获取secret对象
 			if err != nil {
 				return nil, ErrMissingSecret
 			}
@@ -89,7 +93,7 @@ func (cache CacheStrategy) AuthFunc() gin.HandlerFunc {
 
 			return
 		}
-
+		// 检查secret是否过期
 		if KeyExpired(secret.Expires) {
 			tm := time.Unix(secret.Expires, 0).Format("2006-01-02 15:04:05")
 			core.WriteResponse(c, errors.WithCode(code.ErrExpired, "expired at: %s", tm), nil)
@@ -104,6 +108,7 @@ func (cache CacheStrategy) AuthFunc() gin.HandlerFunc {
 }
 
 // KeyExpired checks if a key has expired, if the value of user.SessionState.Expires is 0, it will be ignored.
+// 检查key是否过期
 func KeyExpired(expires int64) bool {
 	if expires >= 1 {
 		return time.Now().After(time.Unix(expires, 0))

@@ -65,6 +65,7 @@ type Handler interface {
 }
 
 // AnalyticsHandler defines the interface for analytics.
+// 定义数据分析用的接口.
 type AnalyticsHandler interface {
 	Connect() bool
 	AppendToSetPipelined(string, [][]byte)

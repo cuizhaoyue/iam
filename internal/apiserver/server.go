@@ -10,7 +10,6 @@ package apiserver
 import (
 	"context"
 	"fmt"
-
 	pb "github.com/marmotedu/api/proto/apiserver/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -34,10 +33,10 @@ import (
 // 3. grpc服务配置，应用需要启动grpc服务
 // 4. server服务配置，包括http和https服务，应用需要启动http或https服务
 type apiServer struct {
-	gs               *shutdown.GracefulShutdown
-	redisOptions     *genericoptions.RedisOptions
-	gRPCAPIServer    *grpcAPIServer
-	genericAPIServer *genericapiserver.GenericAPIServer
+	gs               *shutdown.GracefulShutdown         // 优雅关闭服务管理器
+	redisOptions     *genericoptions.RedisOptions       // redis选项
+	gRPCAPIServer    *grpcAPIServer                     // grpc服务
+	genericAPIServer *genericapiserver.GenericAPIServer // http/https服务
 }
 
 // 应用启动前的准备工作，在准备函数中可以做各种初始化操作
@@ -145,6 +144,8 @@ func (c *ExtraConfig) complete() *completedExtraConfig {
 func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
 	// 创建grpc服务
 	creds, err := credentials.NewServerTLSFromFile(c.ServerCert.CertKey.CertFile, c.ServerCert.CertKey.KeyFile)
+	// disableCreds := insecure.NewCredentials() // grpc.Creds(disableCreds) 禁用 transport security
+
 	if err != nil {
 		log.Fatalf("Failed to generate credentials %s", err.Error())
 	}

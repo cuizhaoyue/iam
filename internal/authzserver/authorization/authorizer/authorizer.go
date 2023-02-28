@@ -3,6 +3,7 @@
 // license that can be found in the LICENSE file.
 
 // Package authorizer defines authorization interface.
+// authorizer包定义authorization接口
 package authorizer
 
 import (
@@ -18,11 +19,13 @@ import (
 )
 
 // PolicyGetter defines function to get policy for a given user.
+// 定义了从一个用户名中获取策略的函数
 type PolicyGetter interface {
 	GetPolicy(key string) ([]*ladon.DefaultPolicy, error)
 }
 
 // Authorization implements authorization.AuthorizationInterface interface.
+// Authorization 实现了authorization.AuthorizationInterface接口
 type Authorization struct {
 	getter PolicyGetter
 }
@@ -34,6 +37,7 @@ func NewAuthorization(getter PolicyGetter) authorization.AuthorizationInterface 
 
 // Create create a policy.
 // Return nil because we use mysql storage to store the policy.
+// 因为我们使用mysql来保存policy，所以返回nil
 func (auth *Authorization) Create(policy *ladon.DefaultPolicy) error {
 	return nil
 }
@@ -68,11 +72,12 @@ func (auth *Authorization) List(username string) ([]*ladon.DefaultPolicy, error)
 }
 
 // LogRejectedAccessRequest write rejected subject access to redis.
+// 记录被拒绝的授权请求，作为审计数据使用
 func (auth *Authorization) LogRejectedAccessRequest(r *ladon.Request, p ladon.Policies, d ladon.Policies) {
 	var conclusion string
 	if len(d) > 1 {
 		allowed := joinPoliciesNames(d[0 : len(d)-1])
-		denied := d[len(d)-1].GetID()
+		denied := d[len(d)-1].GetID() // 拒绝最后一个策略
 		conclusion = fmt.Sprintf("policies %s allow access, but policy %s forcefully denied it", allowed, denied)
 	} else if len(d) == 1 {
 		denied := d[len(d)-1].GetID()
@@ -82,7 +87,7 @@ func (auth *Authorization) LogRejectedAccessRequest(r *ladon.Request, p ladon.Po
 	}
 
 	rstring, pstring, dstring := convertToString(r, p, d)
-	record := analytics.AnalyticsRecord{
+	record := analytics.AnalyticsRecord{ // 分析数据记录
 		TimeStamp:  time.Now().Unix(),
 		Username:   r.Context["username"].(string),
 		Effect:     ladon.DenyAccess,
@@ -92,11 +97,12 @@ func (auth *Authorization) LogRejectedAccessRequest(r *ladon.Request, p ladon.Po
 		Deciders:   dstring,
 	}
 
-	record.SetExpiry(0)
-	_ = analytics.GetAnalytics().RecordHit(&record)
+	record.SetExpiry(0)                             // 设置数据有效期
+	_ = analytics.GetAnalytics().RecordHit(&record) // 把数据发送到通道中
 }
 
 // LogGrantedAccessRequest write granted subject access to redis.
+// 记录被允许的授权请求，作为审计数据使用
 func (auth *Authorization) LogGrantedAccessRequest(r *ladon.Request, p ladon.Policies, d ladon.Policies) {
 	conclusion := fmt.Sprintf("policies %s allow access", joinPoliciesNames(d))
 	rstring, pstring, dstring := convertToString(r, p, d)
