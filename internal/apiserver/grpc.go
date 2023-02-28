@@ -12,11 +12,13 @@ import (
 	"github.com/marmotedu/iam/pkg/log"
 )
 
+// 封装后的grpc服务，包括原生grpc.Server对象和grpc服务要公开的地址
 type grpcAPIServer struct {
 	*grpc.Server
 	address string
 }
 
+// Run 运行grpc服务
 func (s *grpcAPIServer) Run() {
 	listen, err := net.Listen("tcp", s.address)
 	if err != nil {

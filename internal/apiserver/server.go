@@ -55,10 +55,10 @@ type ExtraConfig struct {
 	// etcdOptions      *genericoptions.EtcdOptions
 }
 
-// 构建apiserver实例
+// 构建apiserver实例，大概逻辑是config -> completedConfig -> apiServer -> preparedServer -> Run
 func createAPIServer(cfg *config.Config) (*apiServer, error) {
 	// 控制优雅关停的服务
-	gs := shutdown.New()                                     
+	gs := shutdown.New()
 	gs.AddShutdownManager(posixsignal.NewPosixSignalManager()) // 添加shutdownmanager
 
 	genericConfig, err := buildGenericConfig(cfg) // 传入应用配置创建HTTP/HTTPS的服务配置
@@ -163,6 +163,7 @@ func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
 		log.Fatalf("Failed to get cache instance: %s", err.Error())
 	}
 
+	// 向grpc服务中注册缓存实例
 	pb.RegisterCacheServer(grpcServer, cacheIns)
 
 	reflection.Register(grpcServer)
