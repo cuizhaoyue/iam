@@ -63,7 +63,7 @@ go.build.%:
 	$(eval ARCH := $(word 2,$(subst _, ,$(PLATFORM)))) # ARCH := amd64
 	@echo "===========> Building binary $(COMMAND) $(VERSION) for $(OS) $(ARCH)" # VERSION定义在了common.mk中
 	@mkdir -p $(OUTPUT_DIR)/platforms/$(OS)/$(ARCH) # 创建目录 /_output/platforms/linux/amd64
-	# CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build $(GO_BUILD_FLAGS) -o /_output/platforms/linux/amd64/iam-apiserver iam/cmd/iam-apiserver
+	# CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build $(GO_BUILD_FLAGS) -o _output/platforms/linux/amd64/iam-apiserver iam/cmd/iam-apiserver
 	@CGO_ENABLED=0 GOOS=$(OS) GOARCH=$(ARCH) $(GO) build $(GO_BUILD_FLAGS) -o $(OUTPUT_DIR)/platforms/$(OS)/$(ARCH)/$(COMMAND)$(GO_OUT_EXT) $(ROOT_PACKAGE)/cmd/$(COMMAND)
 
 # 构建镜像，go.build依赖其它构建项

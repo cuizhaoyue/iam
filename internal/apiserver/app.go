@@ -20,6 +20,7 @@ Find more iam-apiserver information at:
     https://github.com/marmotedu/iam/blob/master/docs/guide/en-US/cmd/iam-apiserver.md`
 
 // NewApp creates an App object with default parameters.
+// NewApp 使用默认的参数创建一个App对象
 func NewApp(basename string) *app.App {
 	opts := options.NewOptions()                // 创建一个带有默认参数的Options配置，Options 配置是应用配置的输入
 	application := app.NewApp("IAM API Server", // 创建应用，传入各应用配置
