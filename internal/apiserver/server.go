@@ -2,6 +2,9 @@
 // Use of this source code is governed by a MIT style
 // license that can be found in the LICENSE file.
 
+/*
+internal目录下是私有应用的包，apiserver包主要是apiserver服务的构建和运行
+*/
 package apiserver
 
 import (
@@ -25,6 +28,11 @@ import (
 	"github.com/marmotedu/iam/pkg/storage"
 )
 
+// apiserver 应用配置，包括
+// 1. 控制服务优雅启停的功能
+// 2. redis配置，apiserver应用使用到了redis
+// 3. grpc服务配置，应用需要启动grpc服务
+// 4. server服务配置，包括http和https服务，应用需要启动http或https服务
 type apiServer struct {
 	gs               *shutdown.GracefulShutdown
 	redisOptions     *genericoptions.RedisOptions
@@ -32,6 +40,8 @@ type apiServer struct {
 	genericAPIServer *genericapiserver.GenericAPIServer
 }
 
+// 应用启动前的准备工作，在准备函数中可以做各种初始化操作
+// 例如初始化数据库、安装业务相关的Gin中间件，安装Restful路由等
 type preparedAPIServer struct {
 	*apiServer
 }
@@ -46,9 +56,10 @@ type ExtraConfig struct {
 	// etcdOptions      *genericoptions.EtcdOptions
 }
 
-// 创建apiserver实例
+// 构建apiserver实例
 func createAPIServer(cfg *config.Config) (*apiServer, error) {
-	gs := shutdown.New()                                       // 用于优雅关闭服务
+	// 控制优雅关停的服务
+	gs := shutdown.New()                                     
 	gs.AddShutdownManager(posixsignal.NewPosixSignalManager()) // 添加shutdownmanager
 
 	genericConfig, err := buildGenericConfig(cfg) // 传入应用配置创建HTTP/HTTPS的服务配置
@@ -60,11 +71,12 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	// 通用api服务
 	genericServer, err := genericConfig.Complete().New() // 对HTTP服务配置进行补全，然后New一个REST API SERVER实例
 	if err != nil {
 		return nil, err
 	}
+	// grpc服务
 	extraServer, err := extraConfig.complete().New() // 对GRPC服务配置进行实例，然后New一个GRPC API SERVER实例
 	if err != nil {
 		return nil, err
@@ -72,7 +84,7 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 
 	server := &apiServer{
 		gs:               gs,
-		redisOptions:     cfg.RedisOptions,
+		redisOptions:     cfg.RedisOptions, // redis配置从应用配置中获取
 		genericAPIServer: genericServer,
 		gRPCAPIServer:    extraServer,
 	}
@@ -80,13 +92,14 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 	return server, nil
 }
 
-// PrepareRun 应用初始化
+// PrepareRun 应用的准备工作，包含初始化操作
 func (s *apiServer) PrepareRun() preparedAPIServer {
 	initRouter(s.genericAPIServer.Engine) // 初始化API路由
 
 	s.initRedisStore() // Redis初始化
 
-	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error { // 添加停止时的调用函数
+	// 添加优雅停止的操作
+	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error {
 		mysqlStore, _ := mysql.GetMySQLFactoryOr(nil)
 		if mysqlStore != nil {
 			_ = mysqlStore.Close() // 关闭mysql连接池
@@ -98,9 +111,11 @@ func (s *apiServer) PrepareRun() preparedAPIServer {
 		return nil
 	}))
 
+	// 返回准备好的apiserver实例
 	return preparedAPIServer{s}
 }
 
+// Run 准备好的apiserver实例执行运行操作
 func (s preparedAPIServer) Run() error {
 	go s.gRPCAPIServer.Run() // 运行grpc服务
 
@@ -173,7 +188,7 @@ func buildGenericConfig(cfg *config.Config) (genericConfig *genericapiserver.Con
 	return
 }
 
-//nolint: unparam
+// nolint: unparam
 func buildExtraConfig(cfg *config.Config) (*ExtraConfig, error) {
 	return &ExtraConfig{
 		Addr:         fmt.Sprintf("%s:%d", cfg.GRPCOptions.BindAddress, cfg.GRPCOptions.BindPort), // 设置grpc服务的监听地址

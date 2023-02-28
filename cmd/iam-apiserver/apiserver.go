@@ -21,5 +21,6 @@ func main() {
 		runtime.GOMAXPROCS(runtime.NumCPU())
 	}
 
+	// internal目录中存放私有应用的代码
 	apiserver.NewApp("iam-apiserver").Run()
 }
