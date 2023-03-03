@@ -51,7 +51,7 @@ func initGenericAPIServer(s *GenericAPIServer) {
 	// do some setup
 	// s.GET(path, ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	s.Setup()              // 设置gin engine
+	s.Setup()              // 设置debug日志的输出格式
 	s.InstallMiddlewares() // 安装gin中间件
 	s.InstallAPIs()        // 安装通用的api，包括健康检查、启用Metric、启用pprof
 }
@@ -60,30 +60,35 @@ func initGenericAPIServer(s *GenericAPIServer) {
 // InstallAPIs 安装通用的api
 func (s *GenericAPIServer) InstallAPIs() {
 	// install healthz handler
-	if s.healthz { // 安装健康检查api
+	// 安装健康检查处理器
+	if s.healthz {
 		s.GET("/healthz", func(c *gin.Context) {
 			core.WriteResponse(c, nil, map[string]string{"status": "ok"})
 		})
 	}
 
 	// install metric handler
-	if s.enableMetrics { // 导出gin相关的metric
+	// 导出gin相关的metric，以"gin"开头
+	if s.enableMetrics {
 		prometheus := ginprometheus.NewPrometheus("gin")
 		prometheus.Use(s.Engine)
 	}
 
 	// install pprof handler
-	if s.enableProfiling { // 启用pprof
+	// 启用性能分析功能
+	if s.enableProfiling {
 		pprof.Register(s.Engine)
 	}
 
+	// 添加版本处理器
 	s.GET("/version", func(c *gin.Context) {
 		core.WriteResponse(c, nil, version.Get())
 	})
 }
 
 // Setup do some setup work for gin engine.
-func (s *GenericAPIServer) Setup() { // 设置gin的debug日志输出格式
+func (s *GenericAPIServer) Setup() {
+	// 设置gin的debug日志输出格式
 	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
 		log.Infof("%-6s %-s --> %s (%d handlers)", httpMethod, absolutePath, handlerName, nuHandlers)
 	}
@@ -197,6 +202,7 @@ func (s *GenericAPIServer) Run() error {
 }
 
 // Close graceful shutdown the api server.
+// 优雅关闭api server服务
 func (s *GenericAPIServer) Close() {
 	// The context is used to inform the server it has 10 seconds to finish
 	// the request it is currently handling
@@ -213,6 +219,7 @@ func (s *GenericAPIServer) Close() {
 }
 
 // ping pings the http server to make sure the router is working.
+// 健康检查插件
 func (s *GenericAPIServer) ping(ctx context.Context) error {
 	url := fmt.Sprintf("http://%s/healthz", s.InsecureServingInfo.Address)
 	if strings.Contains(s.InsecureServingInfo.Address, "0.0.0.0") {

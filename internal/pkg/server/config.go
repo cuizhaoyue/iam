@@ -18,6 +18,11 @@ import (
 	"github.com/marmotedu/iam/pkg/log"
 )
 
+/*
+服务创建基本流程：
+
+	config -> completedConfig 初始化操作 -> genericapiserver -> Run -> Close
+*/
 const (
 	// RecommendedHomeDir defines the default directory used to place all iam service configurations.
 	// 定义默认存放服务配置文件的目录
@@ -38,8 +43,8 @@ type Config struct {
 	Mode            string   // 服务运行模式, debug或release
 	Middlewares     []string // 要加载的中间件
 	Healthz         bool     // 启动健康检查
-	EnableProfiling bool     //
-	EnableMetrics   bool     //
+	EnableProfiling bool     // 是否启动性能分析
+	EnableMetrics   bool     // 是否公开metric
 }
 
 // CertKey contains configuration items related to certificate.
@@ -109,13 +114,13 @@ type CompletedConfig struct {
 
 // Complete fills in any fields not set that are required to have valid data and can be derived
 // from other fields. If you're going to `ApplyOptions`, do that first. It's mutating the receiver.
-// 对HTTP服务配置进行实例
+// 对通用服务配置进行补全操作
 func (c *Config) Complete() CompletedConfig {
 	return CompletedConfig{c}
 }
 
 // New returns a new instance of GenericAPIServer from the given config.
-// 根据给定的配置创建一个HTTP/HTTPS服务实例
+// 根据补全后的配置构建通用apiserver服务
 func (c CompletedConfig) New() (*GenericAPIServer, error) {
 	// setMode before gin.New()
 	gin.SetMode(c.Mode) // 设置服务启动模式
@@ -132,6 +137,7 @@ func (c CompletedConfig) New() (*GenericAPIServer, error) {
 
 	initGenericAPIServer(s) // 初始化API SERVER实例
 
+	// 返回初始化后的通用api server实例
 	return s, nil
 }
 

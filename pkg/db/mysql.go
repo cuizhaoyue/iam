@@ -22,7 +22,7 @@ type Options struct {
 	Database              string           // 要访问的数据库
 	MaxIdleConnections    int              // mysql的最大空闲连接数，推荐100
 	MaxOpenConnections    int              // mysql的最大连接数，推荐100
-	MaxConnectionLifeTime time.Duration    //mysql的空闲连接最大存活时间，推荐10s
+	MaxConnectionLifeTime time.Duration    // mysql的空闲连接最大存活时间，推荐10s
 	LogLevel              int              // 日志等级
 	Logger                logger.Interface // 日志接口
 }

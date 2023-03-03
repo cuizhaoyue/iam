@@ -91,7 +91,7 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 	return server, nil
 }
 
-// PrepareRun 应用的准备工作，包含初始化操作
+// PrepareRun 应用的准备工作，包含初始化操作，如数据库初始化、安装业务相关的gin中间件、安装restful路由
 func (s *apiServer) PrepareRun() preparedAPIServer {
 	initRouter(s.genericAPIServer.Engine) // 初始化API路由
 
