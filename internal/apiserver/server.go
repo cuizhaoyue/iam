@@ -204,6 +204,7 @@ func buildExtraConfig(cfg *config.Config) (*ExtraConfig, error) {
 	}, nil
 }
 
+// 初始化redis
 func (s *apiServer) initRedisStore() {
 	ctx, cancel := context.WithCancel(context.Background())
 	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error {

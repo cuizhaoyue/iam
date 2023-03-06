@@ -6,7 +6,6 @@ package options
 
 import (
 	"fmt"
-	"net"
 	"path"
 
 	"github.com/spf13/pflag"
@@ -106,6 +105,7 @@ func (s *SecureServingOptions) Validate() []error {
 
 // AddFlags adds flags related to HTTPS server for a specific APIServer to the
 // specified FlagSet.
+// 设置命令行参数，并且将命令行传入的值绑定到配置中
 func (s *SecureServingOptions) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&s.BindAddress, "secure.bind-address", s.BindAddress, ""+
 		"The IP address on which to listen for the --secure.bind-port port. The "+
@@ -163,21 +163,22 @@ func (s *SecureServingOptions) Complete() error {
 
 // CreateListener create net listener by given address and returns it and port.
 // CreateListener 通过指定的地址创建一个tcp连接监听器，然后返回监听器和端口
-func CreateListener(addr string) (net.Listener, int, error) {
-	network := "tcp"
-
-	ln, err := net.Listen(network, addr)
-	if err != nil {
-		return nil, 0, fmt.Errorf("failed to listen on %v: %w", addr, err)
-	}
-
-	// get port
-	tcpAddr, ok := ln.Addr().(*net.TCPAddr)
-	if !ok {
-		_ = ln.Close()
-
-		return nil, 0, fmt.Errorf("invalid listen address: %q", ln.Addr().String())
-	}
-
-	return ln, tcpAddr.Port, nil
-}
+// 暂时没有用到，先注释掉
+// func CreateListener(addr string) (net.Listener, int, error) {
+// 	network := "tcp"
+//
+// 	ln, err := net.Listen(network, addr)
+// 	if err != nil {
+// 		return nil, 0, fmt.Errorf("failed to listen on %v: %w", addr, err)
+// 	}
+//
+// 	// get port
+// 	tcpAddr, ok := ln.Addr().(*net.TCPAddr)
+// 	if !ok {
+// 		_ = ln.Close()
+//
+// 		return nil, 0, fmt.Errorf("invalid listen address: %q", ln.Addr().String())
+// 	}
+//
+// 	return ln, tcpAddr.Port, nil
+// }

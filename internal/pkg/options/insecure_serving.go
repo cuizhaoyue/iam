@@ -33,7 +33,7 @@ func NewInsecureServingOptions() *InsecureServingOptions {
 }
 
 // ApplyTo applies the run options to the method receiver and returns self.
-// ApplyTo 把应用配置应用到服务中
+// ApplyTo 把应用配置应用到服务配置中，Option -> genericserver config
 func (s *InsecureServingOptions) ApplyTo(c *server.Config) error {
 	c.InsecureServing = &server.InsecureServingInfo{
 		Address: net.JoinHostPort(s.BindAddress, strconv.Itoa(s.BindPort)),
@@ -62,6 +62,7 @@ func (s *InsecureServingOptions) Validate() []error {
 
 // AddFlags adds flags related to features for a specific api server to the
 // specified FlagSet.
+// 定义命令行变量，并将标志的值绑定到配置中
 func (s *InsecureServingOptions) AddFlags(fs *pflag.FlagSet) {
 	fs.StringVar(&s.BindAddress, "insecure.bind-address", s.BindAddress, ""+
 		"The IP address on which to serve the --insecure.bind-port "+
