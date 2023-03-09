@@ -213,6 +213,7 @@ func (s *apiServer) initRedisStore() {
 		return nil
 	}))
 
+	// 构建redis配置
 	config := &storage.Config{
 		Host:                  s.redisOptions.Host,
 		Port:                  s.redisOptions.Port,
@@ -229,6 +230,6 @@ func (s *apiServer) initRedisStore() {
 		SSLInsecureSkipVerify: s.redisOptions.SSLInsecureSkipVerify,
 	}
 
-	// try to connect to redis
+	// try to connect to redis 传入配置创建redis的连接
 	go storage.ConnectToRedis(ctx, config)
 }

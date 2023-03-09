@@ -190,6 +190,7 @@ func (r *Analytics) recordWorker() {
 }
 
 // DurationToMillisecond convert time duration type to float64.
-func DurationToMillisecond(d time.Duration) float64 {
-	return float64(d) / 1e6
-}
+// 没有用到，暂时注释
+// func DurationToMillisecond(d time.Duration) float64 {
+// 	return float64(d) / 1e6
+// }

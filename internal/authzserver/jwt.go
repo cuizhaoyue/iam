@@ -16,6 +16,7 @@ func newCacheAuth() middleware.AuthStrategy {
 	return auth.NewCacheStrategy(getSecretFunc())
 }
 
+// 通过id获取到Secret信息
 func getSecretFunc() func(string) (auth.Secret, error) {
 	return func(kid string) (auth.Secret, error) {
 		cli, err := cache.GetCacheInsOr(nil) // 获取缓存实例

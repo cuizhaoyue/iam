@@ -53,11 +53,11 @@ func GetCacheInsOr(cli store.Factory) (*Cache, error) {
 				Cost:        nil,
 			}
 
-			secretCache, err = ristretto.NewCache(c) // 创建secret缓存
+			secretCache, err = ristretto.NewCache(c) // 创建secret缓存实例
 			if err != nil {
 				return
 			}
-			policyCache, err = ristretto.NewCache(c) // 创建policy缓存
+			policyCache, err = ristretto.NewCache(c) // 创建policy缓存实例
 			if err != nil {
 				return
 			}
