@@ -69,10 +69,13 @@ func Usage() {
 }
 
 func main() {
+	// 设置log输出格式，设置flag的Usage
 	log.SetFlags(0)
 	log.SetPrefix("codegen: ")
 	flag.Usage = Usage
 	flag.Parse()
+
+	// 获取 typeNames 和 buildTags 参数的值
 	if len(*typeNames) == 0 {
 		flag.Usage()
 		os.Exit(2)
@@ -83,7 +86,7 @@ func main() {
 		tags = strings.Split(*buildTags, ",")
 	}
 
-	// We accept either one directory or a list of files. Which do we have?
+	// 获取非flag参数，即位置参数的值，接受一个目录或一个文件列表，默认为当前目录
 	args := flag.Args()
 	if len(args) == 0 {
 		// Default: process whole package in current directory.
@@ -91,11 +94,13 @@ func main() {
 	}
 
 	// Parse the package once.
+	// 解析包一次
 	var dir string
 	g := Generator{
 		trimPrefix: *trimprefix,
 	}
 	// TODO(suzmue): accept other patterns for packages (directories, list of files, import paths, etc).
+	// 获取目录位置
 	if len(args) == 1 && isDirectory(args[0]) {
 		dir = args[0]
 	} else {
@@ -164,9 +169,10 @@ func isDirectory(name string) bool {
 
 // Generator holds the state of the analysis. Primarily used to buffer
 // the output for format.Source.
+// Generator保存分析状态，主要用于为format.Source缓存输出信息
 type Generator struct {
-	buf bytes.Buffer // Accumulated output.
-	pkg *Package     // Package we are scanning.
+	buf bytes.Buffer // 累计输出信息.
+	pkg *Package     // 正在扫描的包.
 
 	trimPrefix string
 }
@@ -177,6 +183,7 @@ func (g *Generator) Printf(format string, args ...interface{}) {
 }
 
 // File holds a single parsed file and associated data.
+// File 保存一个单一的解析文件和关联数据
 type File struct {
 	pkg  *Package  // Package to which this file belongs.
 	file *ast.File // Parsed AST.
@@ -188,6 +195,7 @@ type File struct {
 }
 
 // Package defines options for package.
+// Package 定义包信息
 type Package struct {
 	name  string
 	defs  map[*ast.Ident]types.Object
@@ -196,6 +204,7 @@ type Package struct {
 
 // parsePackage analyzes the single package constructed from the patterns and tags.
 // parsePackage exits if there is an error.
+// 分析单一的由patterns和tags构成的包，如果出现错误说明已经存在了。
 func (g *Generator) parsePackage(patterns []string, tags []string) {
 	cfg := &packages.Config{
 		// nolint: staticcheck

@@ -23,6 +23,7 @@ func Publish() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Next() // 先执行业务逻辑
 
+		// 判断业务逻辑是否执行成功
 		if c.Writer.Status() != http.StatusOK {
 			log.L(c).Debugf("request failed with http status code `%d`, ignore publish message", c.Writer.Status())
 

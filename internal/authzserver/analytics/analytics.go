@@ -69,7 +69,7 @@ type Analytics struct {
 func NewAnalytics(options *AnalyticsOptions, store storage.AnalyticsHandler) *Analytics {
 	ps := options.PoolSize
 	recordsBufferSize := options.RecordsBufferSize
-	workerBufferSize := recordsBufferSize / uint64(ps)
+	workerBufferSize := recordsBufferSize / uint64(ps) // 每个worker可以缓存的日志消息数
 	log.Debug("Analytics pool worker buffer size", log.Uint64("workerBufferSize", workerBufferSize))
 
 	// 通过RecordHit函数，向recordsChan 中写入 AnalyticsRecord 类型的数据
