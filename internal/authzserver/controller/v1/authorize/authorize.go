@@ -22,7 +22,7 @@ type AuthzController struct {
 	store authorizer.PolicyGetter // authorizer属于服务层
 }
 
-// NewAuthzController creates a authorize handler.
+// NewAuthzController creates an authorize handler.
 // 创建一个授权处理器
 func NewAuthzController(store authorizer.PolicyGetter) *AuthzController {
 	return &AuthzController{
@@ -30,7 +30,7 @@ func NewAuthzController(store authorizer.PolicyGetter) *AuthzController {
 	}
 }
 
-// Authorize returns whether a request is allow or deny to access a resource and do some action
+// Authorize returns whether a request is allowed or deny to access a resource and do some action
 // under specified condition.
 // 拒绝或允许某种条件下的请求访问某种资源或作其它操作.
 func (a *AuthzController) Authorize(c *gin.Context) {
@@ -42,6 +42,7 @@ func (a *AuthzController) Authorize(c *gin.Context) {
 	}
 
 	// 创建并返回包含 Manager 和 AuditLogger 字段的Authorizer类型的变量。
+	// 它是一个授权器，用于对请求进行授权。
 	auth := authorization.NewAuthorizer(authorizer.NewAuthorization(a.store))
 	if r.Context == nil {
 		r.Context = ladon.Context{}

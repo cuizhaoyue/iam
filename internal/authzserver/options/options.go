@@ -51,6 +51,7 @@ func (o *Options) ApplyTo(c *server.Config) error {
 }
 
 // Flags returns flags for a specific APIServer by section name.
+// 创建命令行标志集合
 func (o *Options) Flags() (fss cliflag.NamedFlagSets) {
 	o.GenericServerRunOptions.AddFlags(fss.FlagSet("generic"))
 	o.AnalyticsOptions.AddFlags(fss.FlagSet("analytics"))

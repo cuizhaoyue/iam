@@ -91,7 +91,7 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 	return server, nil
 }
 
-// PrepareRun 应用的准备工作，包含初始化操作
+// PrepareRun 应用的准备工作，包含初始化操作，如数据库初始化、安装业务相关的gin中间件、安装restful路由
 func (s *apiServer) PrepareRun() preparedAPIServer {
 	initRouter(s.genericAPIServer.Engine) // 初始化API路由
 
@@ -204,6 +204,7 @@ func buildExtraConfig(cfg *config.Config) (*ExtraConfig, error) {
 	}, nil
 }
 
+// 初始化redis
 func (s *apiServer) initRedisStore() {
 	ctx, cancel := context.WithCancel(context.Background())
 	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error {
@@ -212,6 +213,7 @@ func (s *apiServer) initRedisStore() {
 		return nil
 	}))
 
+	// 构建redis配置
 	config := &storage.Config{
 		Host:                  s.redisOptions.Host,
 		Port:                  s.redisOptions.Port,
@@ -228,6 +230,6 @@ func (s *apiServer) initRedisStore() {
 		SSLInsecureSkipVerify: s.redisOptions.SSLInsecureSkipVerify,
 	}
 
-	// try to connect to redis
+	// try to connect to redis 传入配置创建redis的连接
 	go storage.ConnectToRedis(ctx, config)
 }

@@ -85,7 +85,7 @@ func (s preparedAuthzServer) Run() error {
 		log.Fatalf("start shutdown manager failed: %s", err.Error())
 	}
 
-	//nolint: errcheck
+	// nolint: errcheck
 	go s.genericAPIServer.Run() // 启动http服务
 
 	// in order to ensure that the reported data is not lost,
@@ -155,7 +155,7 @@ func (s *authzServer) initialize() error {
 	go storage.ConnectToRedis(ctx, s.buildStorageConfig())
 
 	// cron to reload all secrets and policies from iam-apiserver
-	// 创建缓存实例，定时从iam-apiserver中同步secret和policy过来
+	// 连接rpc服务，创建缓存实例，定时从iam-apiserver中同步secret和policy过来
 	cacheIns, err := cache.GetCacheInsOr(apiserver.GetAPIServerFactoryOrDie(s.rpcServer, s.clientCA))
 	if err != nil {
 		return errors.Wrap(err, "get cache instance failed")

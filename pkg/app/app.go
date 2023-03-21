@@ -24,47 +24,50 @@ import (
 var (
 	progressMessage = color.GreenString("==>")
 
-	usageTemplate = fmt.Sprintf(`%s{{if .Runnable}}
-  %s{{end}}{{if .HasAvailableSubCommands}}
-  %s{{end}}{{if gt (len .Aliases) 0}}
-
-%s
-  {{.NameAndAliases}}{{end}}{{if .HasExample}}
-
-%s
-{{.Example}}{{end}}{{if .HasAvailableSubCommands}}
-
-%s{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
-  %s {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
-
-%s
-{{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
-
-%s
-{{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
-
-%s{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
-  {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
-
-Use "%s --help" for more information about a command.{{end}}
-`,
-		color.CyanString("Usage:"),
-		color.GreenString("{{.UseLine}}"),
-		color.GreenString("{{.CommandPath}} [command]"),
-		color.CyanString("Aliases:"),
-		color.CyanString("Examples:"),
-		color.CyanString("Available Commands:"),
-		color.GreenString("{{rpad .Name .NamePadding }}"),
-		color.CyanString("Flags:"),
-		color.CyanString("Global Flags:"),
-		color.CyanString("Additional help topics:"),
-		color.GreenString("{{.CommandPath}} [command]"),
-	)
+	// 	没有用到这个模板，先注释
+	// 	usageTemplate = fmt.Sprintf(`%s{{if .Runnable}}
+	//   %s{{end}}{{if .HasAvailableSubCommands}}
+	//   %s{{end}}{{if gt (len .Aliases) 0}}
+	//
+	// %s
+	//   {{.NameAndAliases}}{{end}}{{if .HasExample}}
+	//
+	// %s
+	// {{.Example}}{{end}}{{if .HasAvailableSubCommands}}
+	//
+	// %s{{range .Commands}}{{if (or .IsAvailableCommand (eq .Name "help"))}}
+	//   %s {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableLocalFlags}}
+	//
+	// %s
+	// {{.LocalFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasAvailableInheritedFlags}}
+	//
+	// %s
+	// {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}{{end}}{{if .HasHelpSubCommands}}
+	//
+	// %s{{range .Commands}}{{if .IsAdditionalHelpTopicCommand}}
+	//   {{rpad .CommandPath .CommandPathPadding}} {{.Short}}{{end}}{{end}}{{end}}{{if .HasAvailableSubCommands}}
+	//
+	// Use "%s --help" for more information about a command.{{end}}
+	// `,
+	// 		color.CyanString("Usage:"),
+	// 		color.GreenString("{{.UseLine}}"),
+	// 		color.GreenString("{{.CommandPath}} [command]"),
+	// 		color.CyanString("Aliases:"),
+	// 		color.CyanString("Examples:"),
+	// 		color.CyanString("Available Commands:"),
+	// 		color.GreenString("{{rpad .Name .NamePadding }}"),
+	// 		color.CyanString("Flags:"),
+	// 		color.CyanString("Global Flags:"),
+	// 		color.CyanString("Additional help topics:"),
+	// 		color.GreenString("{{.CommandPath}} [command]"),
+	// 	)
 )
 
 // App is the main structure of a cli application.
 // It is recommended that an app be created with the app.NewApp() function.
-// App是cli应用的主要结构体
+// App表示一个程序应用
+// 运行逻辑：App -> build Command -> read config file -> setup RunE --> config option from config
+// -> run RunE -> build server config -> create apiServer from config -> prepared apiserver -> Run apiserver
 type App struct {
 	basename    string     // 应用二进制文件名称
 	name        string     // 应用名称，应用的简短描述
@@ -72,8 +75,8 @@ type App struct {
 	options     CliOptions // 应用的命令行选项
 	runFunc     RunFunc    // 应用的启动函数，初始化应用，并最终启动 HTTP 和 GRPC Web 服务
 	silence     bool
-	noVersion   bool
-	noConfig    bool
+	noVersion   bool // 是否不打印版本信息
+	noConfig    bool // 是否不从配置文件读取配置
 	commands    []*Command
 	args        cobra.PositionalArgs // 位置参数
 	cmd         *cobra.Command       // 应用的命令行
@@ -206,10 +209,10 @@ func (a *App) buildCommand() {
 		cmd.SetHelpCommand(helpCommand(FormatBaseName(a.basename))) // 设置help信息的Command
 	}
 
-	// 命令行参数解析
+	// 命令行参数解析,将此应用下的所有分类后的FlagSet添加到此应用的FlagSet中
 	var namedFlagSets cliflag.NamedFlagSets
 	if a.options != nil { // 将Options配置的Flag添加到FlagSet中
-		namedFlagSets = a.options.Flags() // 创建并返回一批FlagSet，并将Flag进行分组
+		namedFlagSets = a.options.Flags() // 创建并返回设置好的FlagSet，并将Flag进行分组
 		fs := cmd.Flags()
 		// 把所有的FlagSet添加到当前cmd的FlagSet中
 		for _, f := range namedFlagSets.FlagSets {

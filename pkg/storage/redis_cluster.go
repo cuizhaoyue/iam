@@ -51,7 +51,7 @@ var (
 var disableRedis atomic.Value
 
 // DisableRedis very handy when testsing it allows to dynamically enable/disable talking with redisW.
-//func DisableRedis(ok bool) {
+// func DisableRedis(ok bool) {
 //	if ok {
 //		redisUp.Store(false)
 //		disableRedis.Store(true)
@@ -60,7 +60,7 @@ var disableRedis atomic.Value
 //	}
 //	redisUp.Store(true)
 //	disableRedis.Store(false)
-//}
+// }
 
 func shouldConnect() bool {
 	if v := disableRedis.Load(); v != nil {
@@ -119,7 +119,7 @@ func connectSingleton(cache bool, config *Config) bool {
 // RedisCluster 是一个使用redis数据库的存储管理器
 type RedisCluster struct {
 	KeyPrefix string // key的前缀
-	HashKeys  bool   // 是否包含key
+	HashKeys  bool   // 是否对key做hash运算
 	IsCache   bool   // 是否缓存
 }
 
@@ -363,7 +363,7 @@ func (o *RedisOpts) failover() *redis.FailoverOptions {
 }
 
 // Connect will establish a connection this is always true because we are dynamically using redis.
-// Connect 将会建立一个连接，这个方法问题返回true，因为我们动态地使用redis.
+// Connect 将会建立一个连接，这个方法总是返回true，因为我们动态地使用redis.
 func (r *RedisCluster) Connect() bool {
 	return true
 }
@@ -374,13 +374,14 @@ func (r *RedisCluster) singleton() redis.UniversalClient {
 
 func (r *RedisCluster) hashKey(in string) string {
 	if !r.HashKeys {
-		// Not hashing? Return the raw key
+		// 如果不允许对key做hash运算则返回原生key字符中
 		return in
 	}
 
 	return HashStr(in)
 }
 
+// 处理key格式，前缀+名称的hash值
 func (r *RedisCluster) fixKey(keyName string) string {
 	return r.KeyPrefix + r.hashKey(keyName)
 }
@@ -499,7 +500,7 @@ func (r *RedisCluster) GetRawKey(keyName string) (string, error) {
 	return value, nil
 }
 
-// GetExp return the expiry of the given key.
+// GetExp return the expiry of the given key. 获取key的到期时间，-1表示无限制
 func (r *RedisCluster) GetExp(keyName string) (int64, error) {
 	log.Debugf("Getting exp for key: %s", r.fixKey(keyName))
 	if err := r.up(); err != nil {
@@ -923,6 +924,7 @@ func (r *RedisCluster) StartPubSubHandler(channel string, callback func(interfac
 		return err
 	}
 
+	// 使用回调函数处理通道中接收到的信息
 	for msg := range pubsub.Channel() { // 获取接收到的订阅的消息并传入回调函数中，回调函数会把消息转换成Notification类型并判断Command的值
 		callback(msg)
 	}
@@ -1068,6 +1070,7 @@ func (r *RedisCluster) GetListRange(keyName string, from, to int64) ([]string, e
 }
 
 // AppendToSetPipelined append values to redis pipeline.
+// 上报数据到redis的通道
 func (r *RedisCluster) AppendToSetPipelined(key string, values [][]byte) {
 	if len(values) == 0 {
 		return
@@ -1081,16 +1084,18 @@ func (r *RedisCluster) AppendToSetPipelined(key string, values [][]byte) {
 	}
 	client := r.singleton()
 
+	// 把数据推送到列表中
 	pipe := client.Pipeline()
 	for _, val := range values {
 		pipe.RPush(fixedKey, val)
 	}
 
+	// 执行管道中所有的命令
 	if _, err := pipe.Exec(); err != nil {
 		log.Errorf("Error trying to append to set keys: %s", err.Error())
 	}
 
-	// if we need to set an expiration time
+	// if we need to set an expiration time 判断是否设置key的过期时间，-1表示无限制
 	if storageExpTime := int64(viper.GetDuration("analytics.storage-expiration-time")); storageExpTime != int64(-1) {
 		// If there is no expiry on the analytics set, we should set it.
 		exp, _ := r.GetExp(key)

@@ -67,8 +67,8 @@ type Handler interface {
 // AnalyticsHandler defines the interface for analytics.
 // 定义数据分析用的接口.
 type AnalyticsHandler interface {
-	Connect() bool
-	AppendToSetPipelined(string, [][]byte)
+	Connect() bool                         // 连接storage
+	AppendToSetPipelined(string, [][]byte) // 上报数据给storage
 	GetAndDeleteSet(string) []interface{}
 	SetExp(string, time.Duration) error // Set key expiration
 	GetExp(string) (int64, error)       // Returns expiry of a key
@@ -115,23 +115,24 @@ func TokenHashAlgo(token string) string {
 }
 
 // TokenOrg ...
-func TokenOrg(token string) string {
-	if strings.HasPrefix(token, B64JSONPrefix) {
-		if jsonToken, err := base64.StdEncoding.DecodeString(token); err == nil {
-			// Checking error in case if it is a legacy tooken which just by accided has the same b64JSON prefix
-			if org, err := jsonparser.GetString(jsonToken, "org"); err == nil {
-				return org
-			}
-		}
-	}
-
-	// 24 is mongo bson id length
-	if len(token) > 24 {
-		return token[:24]
-	}
-
-	return ""
-}
+// 没有用到，暂时注释
+// func TokenOrg(token string) string {
+// 	if strings.HasPrefix(token, B64JSONPrefix) {
+// 		if jsonToken, err := base64.StdEncoding.DecodeString(token); err == nil {
+// 			// Checking error in case if it is a legacy tooken which just by accided has the same b64JSON prefix
+// 			if org, err := jsonparser.GetString(jsonToken, "org"); err == nil {
+// 				return org
+// 			}
+// 		}
+// 	}
+//
+// 	// 24 is mongo bson id length
+// 	if len(token) > 24 {
+// 		return token[:24]
+// 	}
+//
+// 	return ""
+// }
 
 // Defines algorithm constant.
 var (
@@ -156,7 +157,7 @@ func hashFunction(algorithm string) (hash.Hash, error) {
 	}
 }
 
-// HashStr return hash the give string and return.
+// HashStr 对字符串做hash运算并返回hash值
 func HashStr(in string) string {
 	h, _ := hashFunction(TokenHashAlgo(in))
 	_, _ = h.Write([]byte(in))
@@ -165,6 +166,7 @@ func HashStr(in string) string {
 }
 
 // HashKey return hash the give string and return.
-func HashKey(in string) string {
-	return HashStr(in)
-}
+// 没用到，暂时注释
+// func HashKey(in string) string {
+// 	return HashStr(in)
+// }

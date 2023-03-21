@@ -7,7 +7,7 @@ package config
 import "github.com/marmotedu/iam/internal/apiserver/options"
 
 // Config is the running configuration structure of the IAM pump service.
-// 应用配置
+// 应用配置，Option -> Config
 type Config struct {
 	*options.Options
 }

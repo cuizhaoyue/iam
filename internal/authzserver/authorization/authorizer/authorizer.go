@@ -30,6 +30,8 @@ type Authorization struct {
 	getter PolicyGetter
 }
 
+var _ authorization.AuthorizationInterface = &Authorization{}
+
 // NewAuthorization create a new Authorization instance.
 func NewAuthorization(getter PolicyGetter) authorization.AuthorizationInterface {
 	return &Authorization{getter}
