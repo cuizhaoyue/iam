@@ -7,6 +7,7 @@ package pumps
 import "github.com/marmotedu/iam/internal/pump/analytics"
 
 // CommonPumpConfig defines common options used by all persistent store, like elasticsearch, kafka, mongo and etc.
+// 定义可以被所有持久存储使用的通用配置
 type CommonPumpConfig struct {
 	filters               analytics.AnalyticsFilters
 	timeout               int

@@ -41,22 +41,23 @@ type preparedPumpServer struct {
 
 func createPumpServer(cfg *config.Config) (*pumpServer, error) {
 	// use the same redis database with authorization log history
+	// 连接到和授权日志历史数据相同的redis
 	client := goredislib.NewClient(&goredislib.Options{
 		Addr:     fmt.Sprintf("%s:%d", cfg.RedisOptions.Host, cfg.RedisOptions.Port),
 		Username: cfg.RedisOptions.Username,
 		Password: cfg.RedisOptions.Password,
 	})
-
+	// 创建RedSync客户端
 	rs := redsync.New(goredis.NewPool(client))
 
 	server := &pumpServer{
 		secInterval:    cfg.PurgeDelay,
 		omitDetails:    cfg.OmitDetailedRecording,
-		mutex:          rs.NewMutex("iam-pump", redsync.WithExpiry(10*time.Minute)),
+		mutex:          rs.NewMutex("iam-pump", redsync.WithExpiry(10*time.Minute)), // 创建带有过期时间的锁对象
 		analyticsStore: &redis.RedisClusterStorageManager{},
 		pumps:          cfg.Pumps,
 	}
-
+	// 初始化redis集群管理器
 	if err := server.analyticsStore.Init(cfg.RedisOptions); err != nil {
 		return nil, err
 	}
@@ -89,6 +90,7 @@ func (s preparedPumpServer) Run(stopCh <-chan struct{}) error {
 }
 
 // pump get authorization log from redis and write to pumps.
+// 从redis中获取授权日志并写入pumps
 func (s *pumpServer) pump() {
 	if err := s.mutex.Lock(); err != nil {
 		log.Info("there is already an iam-pump instance running.")
@@ -131,18 +133,19 @@ func (s *pumpServer) pump() {
 func (s *pumpServer) initialize() {
 	pmps = make([]pumps.Pump, len(s.pumps))
 	i := 0
+	// 遍历所有的pump
 	for key, pmp := range s.pumps {
 		pumpTypeName := pmp.Type
 		if pumpTypeName == "" {
 			pumpTypeName = key
 		}
-
+		// 根据名称获取对应的pump实例
 		pmpType, err := pumps.GetPumpByName(pumpTypeName)
 		if err != nil {
 			log.Errorf("Pump load error (skipping): %s", err.Error())
 		} else {
-			pmpIns := pmpType.New()
-			initErr := pmpIns.Init(pmp.Meta)
+			pmpIns := pmpType.New()          // 重新创建pump实例
+			initErr := pmpIns.Init(pmp.Meta) // 初始化pump
 			if initErr != nil {
 				log.Errorf("Pump init error (skipping): %s", initErr.Error())
 			} else {
@@ -216,6 +219,7 @@ func execPumpWriting(wg *sync.WaitGroup, pmp pumps.Pump, keys *[]interface{}, pu
 	var ctx context.Context
 	var cancel context.CancelFunc
 	// Initialize context depending if the pump has a configured timeout
+	// 根据pump是否配置了超时初始化Context
 	if tm := pmp.GetTimeout(); tm > 0 {
 		ctx, cancel = context.WithTimeout(context.Background(), time.Duration(tm)*time.Second)
 	} else {
@@ -236,7 +240,7 @@ func execPumpWriting(wg *sync.WaitGroup, pmp pumps.Pump, keys *[]interface{}, pu
 			log.Warnf("Error Writing to: %s - Error: %s", pmp.GetName(), err.Error())
 		}
 	case <-ctx.Done():
-		//nolint: errorlint
+		// nolint: errorlint
 		switch ctx.Err() {
 		case context.Canceled:
 			log.Warnf("The writing to %s have got canceled.", pmp.GetName())

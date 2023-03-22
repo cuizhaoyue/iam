@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -38,11 +39,14 @@ const (
 )
 
 // MongoPump defines a mongo pump with mongo specific options and common options.
+// 定义一个拥有特定配置和通用配置的mongo pump
 type MongoPump struct {
 	dbSession *mgo.Session
 	dbConf    *MongoConf
 	CommonPumpConfig
 }
+
+var _ Pump = &MongoPump{}
 
 var mongoPumpPrefix = "PMP_MONGO"
 
@@ -78,7 +82,7 @@ type MongoConf struct {
 }
 
 func loadCertificateAndKeyFromFile(path string) (*tls.Certificate, error) {
-	raw, err := ioutil.ReadFile(path)
+	raw, err := os.ReadFile(path)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read file")
 	}
@@ -238,6 +242,7 @@ func (m *MongoPump) GetName() string {
 
 // Init initialize the mongo pump instance.
 func (m *MongoPump) Init(config interface{}) error {
+	// 获取mongo具体配置
 	m.dbConf = &MongoConf{}
 	err := mapstructure.Decode(config, &m.dbConf)
 	if err == nil {
@@ -252,16 +257,19 @@ func (m *MongoPump) Init(config interface{}) error {
 		log.Fatalf("Failed to decode configuration: %s", err.Error())
 	}
 
+	// 根据前缀找到环境变量填充到对应的配置中
 	overrideErr := envconfig.Process(mongoPumpPrefix, m.dbConf)
 	if overrideErr != nil {
 		log.Errorf("Failed to process environment variables for mongo pump: %s", overrideErr.Error())
 	}
 
+	// 默认最大投递容量为10M
 	if m.dbConf.MaxInsertBatchSizeBytes == 0 {
 		log.Info("-- No max batch size set, defaulting to 10MB")
 		m.dbConf.MaxInsertBatchSizeBytes = 10 * MiB
 	}
 
+	// mongo 最大document为10M
 	if m.dbConf.MaxDocumentSizeBytes == 0 {
 		log.Info("-- No max document size set, defaulting to 10MB")
 		m.dbConf.MaxDocumentSizeBytes = 10 * MiB
@@ -395,6 +403,7 @@ func (m *MongoPump) ensureIndexes() error {
 	return nil
 }
 
+// 连接到mongodb
 func (m *MongoPump) connect() {
 	var err error
 	var dialInfo *mgo.DialInfo

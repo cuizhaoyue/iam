@@ -11,6 +11,7 @@ func init() {
 	availablePumps = make(map[string]Pump)
 
 	// Register all the storage handlers here
+	// 注册所有的存储处理器
 	availablePumps["csv"] = &CSVPump{}
 	availablePumps["mongo"] = &MongoPump{}
 	availablePumps["dummy"] = &DummyPump{}

@@ -15,23 +15,25 @@ import (
 )
 
 // PumpConfig defines options for pump back-end.
+// 定义了pump的后端配置，Meta为自定义配置，其它为通用配置。
+// 通用配置可以配置共享，减少开发的维护的工作量，自定义配置可以适配不同的pump的差异化配置
 type PumpConfig struct {
-	Type                  string                     `json:"type"                    mapstructure:"type"`
+	Type                  string                     `json:"type"                    mapstructure:"type"` // pump 类型
 	Filters               analytics.AnalyticsFilters `json:"filters"                 mapstructure:"filters"`
 	Timeout               int                        `json:"timeout"                 mapstructure:"timeout"`
 	OmitDetailedRecording bool                       `json:"omit-detailed-recording" mapstructure:"omit-detailed-recording"`
 	Meta                  map[string]interface{}     `json:"meta"                    mapstructure:"meta"`
 }
 
-// Options runs a pumpserver.
+// Options runs a pumpserver. 运行pump服务的配置
 type Options struct {
-	PurgeDelay            int                          `json:"purge-delay"             mapstructure:"purge-delay"`
-	Pumps                 map[string]PumpConfig        `json:"pumps"                   mapstructure:"pumps"`
-	HealthCheckPath       string                       `json:"health-check-path"       mapstructure:"health-check-path"`
-	HealthCheckAddress    string                       `json:"health-check-address"    mapstructure:"health-check-address"`
-	OmitDetailedRecording bool                         `json:"omit-detailed-recording" mapstructure:"omit-detailed-recording"`
-	RedisOptions          *genericoptions.RedisOptions `json:"redis"                   mapstructure:"redis"`
-	Log                   *log.Options                 `json:"log"                     mapstructure:"log"`
+	PurgeDelay            int                          `json:"purge-delay"             mapstructure:"purge-delay"`             // 审计日志清理时间间隔，默认10s
+	Pumps                 map[string]PumpConfig        `json:"pumps"                   mapstructure:"pumps"`                   // pump 配置
+	HealthCheckPath       string                       `json:"health-check-path"       mapstructure:"health-check-path"`       // 健康检查路由，默认为 /healthz
+	HealthCheckAddress    string                       `json:"health-check-address"    mapstructure:"health-check-address"`    // 健康检查绑定端口，默认为 0.0.0.0:7070
+	OmitDetailedRecording bool                         `json:"omit-detailed-recording" mapstructure:"omit-detailed-recording"` // 设置为 true 会记录详细的授权审计日志，默认为 false
+	RedisOptions          *genericoptions.RedisOptions `json:"redis"                   mapstructure:"redis"`                   // Redis 配置
+	Log                   *log.Options                 `json:"log"                     mapstructure:"log"`                     // 日志配置
 }
 
 // NewOptions creates a new Options object with default parameters.
